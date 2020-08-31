@@ -1,6 +1,21 @@
-import 'dotenv/config.js';
+// import 'dotenv/config.js';
 
-export default {
+// export default {
+//   dialect: 'mysql',
+//   host: process.env.DB_HOST,
+//   username: process.env.DB_USER,
+//   password: process.env.DB_PASS,
+//   database: process.env.DB_NAME,
+//   define: {
+//     timestamps: true,
+//     underscored: true,
+//     underscoredAll: true,
+//   },
+// };
+
+require('dotenv/config');
+
+module.exports = {
   dialect: 'mysql',
   host: process.env.DB_HOST,
   username: process.env.DB_USER,

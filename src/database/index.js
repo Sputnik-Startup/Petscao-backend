@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize';
-import config from '../config/database.js';
-import User from '../app/models/User.js';
-import File from '../app/models/File.js';
+import config from '../config/database';
+import User from '../app/models/User';
+import File from '../app/models/File';
 
 const models = [User, File];
 
@@ -14,7 +14,11 @@ class Database {
   init() {
     this.connection = new Sequelize(config);
 
-    models.map((model) => model.init(this.connection));
+    models
+      .map((model) => model.init(this.connection))
+      .map(
+        (model) => model.associate && model.associate(this.connection.models)
+      );
   }
 
   mongo() {}
