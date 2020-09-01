@@ -1,10 +1,10 @@
 import * as Yup from 'yup';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import Client from '../models/Client';
 import authConfig from '../../config/auth';
 
 class SessionController {
-  static async create(request, response) {
+  async create(request, response) {
     const schema = Yup.object().shape({
       email: Yup.string().email().required(),
       password: Yup.string().required(),
@@ -16,13 +16,13 @@ class SessionController {
 
     const { email, password } = request.body;
 
-    const user = await User.findOne({ where: { email } });
+    const client = await Client.findOne({ where: { email } });
 
-    if (!(await user.checkPassword(password))) {
+    if (!(await client.checkPassword(password))) {
       return response.status(400).json({ error: 'Password does not match' });
     }
 
-    const { id, name } = user;
+    const { id, name } = client;
 
     return response.json({
       user: {
@@ -35,4 +35,4 @@ class SessionController {
   }
 }
 
-export default SessionController;
+export default new SessionController();
