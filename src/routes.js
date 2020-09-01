@@ -1,9 +1,12 @@
 import express from 'express';
 
+import SessionController from './app/controllers/SessionController';
+import auth from './app/middlewares/auth';
+
 const routes = express.Router();
 
-routes.get('/', (request, response) => {
-  return response.json({ msg: 'teste' });
-});
+routes.use(auth);
+
+routes.post('/session', SessionController.create);
 
 export default routes;
