@@ -7,6 +7,7 @@ import ClientController from './app/controllers/ClientController';
 import auth from './app/middlewares/auth';
 import multerConfig from './config/multer';
 import AvatarController from './app/controllers/AvatarController';
+import PetController from './app/controllers/PetController';
 
 const routes = express.Router();
 const upload = multer(multerConfig);
@@ -24,5 +25,8 @@ routes.patch(
   upload.single('avatar'),
   AvatarController.update
 );
+
+routes.post('/client/pet', upload.single('avatar'), PetController.create);
+routes.get('/client/pet', PetController.index);
 
 export default routes;

@@ -16,21 +16,19 @@ class SessionController {
 
     const { email, password } = request.body;
 
-    const client = await Client.findOne({ where: { email } });
+    const client = await Client.findOne({
+      where: { email },
+    });
 
     if (!(await client.checkPassword(password))) {
       return response.status(400).json({ error: 'Password does not match' });
     }
 
-    const { id, name } = client;
+    client.password_hash = undefined;
 
     return response.json({
-      user: {
-        id,
-        name,
-        email,
-      },
-      token: jwt.sign({ id }, authConfig.secret),
+      user: client,
+      token: jwt.sign({ id: client.id }, authConfig.secret),
     });
   }
 }

@@ -9,7 +9,8 @@ export default async (filename, id) => {
       resolve(__dirname, '..', '..', 'tmp', 'uploads', filename)
     );
 
-    await File.destroy({ where: { id } });
+    if (id) await File.destroy({ where: { id } });
+    return;
   } catch (error) {
     throw new Error(error);
   }

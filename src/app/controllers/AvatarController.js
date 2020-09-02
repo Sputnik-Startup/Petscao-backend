@@ -5,10 +5,10 @@ import clearJunk from '../../utils/clearJunk';
 class AvatarController {
   async update(request, response) {
     let avatarUpdated;
+    const newAvatar = request.file;
     try {
-      const newAvatar = request.file;
-
       if (!newAvatar) {
+        clearJunk(newAvatar.filename);
         return response.status(400).json({ error: 'New Avatar not provided.' });
       }
 
@@ -43,6 +43,7 @@ class AvatarController {
         ],
       });
     } catch (error) {
+      await clearJunk(newAvatar.filename, avatarUpdated && avatarUpdated.id);
       return response.status(500).json({ error: 'Internal error.' });
     }
 

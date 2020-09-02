@@ -1,6 +1,6 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('files', {
+    return queryInterface.createTable('pets', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -11,10 +11,29 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      path: {
+      type: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+      },
+      owner_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'clients',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+        allowNull: true,
+      },
+      avatar_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'files',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -28,6 +47,6 @@ module.exports = {
   },
 
   down: (queryInterface) => {
-    return queryInterface.dropTable('files');
+    return queryInterface.dropTable('pets');
   },
 };

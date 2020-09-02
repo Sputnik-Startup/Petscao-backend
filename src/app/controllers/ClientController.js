@@ -23,13 +23,17 @@ class ClientController {
       cep: Yup.string().required(),
     });
 
+    const avatar = request.file;
+
     if (!(await schema.isValid(request.body))) {
+      clearJunk(avatar.filename);
       return response.status(400).json({ error: 'Validation fails.' });
     }
     let client;
     let avatarData;
 
     if (!validateCpf(request.body.cpf)) {
+      clearJunk(avatar.filename);
       return response.status(400).json({ error: 'Invalid CPF.' });
     }
 
@@ -41,10 +45,10 @@ class ClientController {
       });
 
       if (clientExists) {
+        clearJunk(avatar.filename);
         return response.status(400).json({ error: 'User already exists.' });
       }
 
-      const avatar = request.file;
       if (avatar) {
         avatarData = await File.create({
           name: avatar.originalname,
@@ -70,8 +74,7 @@ class ClientController {
         ],
       });
     } catch (error) {
-      console.log(error);
-      if (avatarData) await clearJunk(avatarData.path, avatarData.id);
+      await clearJunk(avatar.filename, avatarData && avatarData.id);
       return response.status(500).json({ error: 'Internal error.' });
     }
     return response.json(client);
@@ -140,23 +143,21 @@ class ClientController {
       return response.status(401).json({ error: 'Password does not match.' });
     }
 
-    const client = await user.update(request.body);
-
-    return response.json({
-      id: client.id,
-      name: client.name,
-      email: client.email,
-      age: client.age,
-      cpf: client.cpf,
-      cep: client.cep,
-      address: client.address,
-      neighborhood: client.neighborhood,
-      city: client.city,
-      state: client.state,
-      gender: client.gender,
-      phone: client.phone,
-      birth_date: client.birth_date,
+    await user.update(request.body);
+    const updatedUser = await Client.findByPk(user.id, {
+      attributes: {
+        exclude: ['password_hash', 'avatar_id'],
+      },
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
     });
+
+    return response.json(updatedUser);
   }
 }
 
