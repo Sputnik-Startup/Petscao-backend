@@ -10,8 +10,9 @@ export default async (request, response, next) => {
   }
 
   const [, token] = authorization.split(' ');
+
   try {
-    const decoded = await promisify(jwt.decode)(token, authConfig.secret);
+    const decoded = await promisify(jwt.verify)(token, authConfig.secret);
 
     request.userId = decoded.id;
     return next();
