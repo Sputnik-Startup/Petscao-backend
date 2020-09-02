@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { Op } from 'sequelize';
 import Client from '../models/Client';
 import File from '../models/File';
 import clearJunk from '../../utils/clearJunk';
@@ -35,7 +36,7 @@ class ClientController {
     try {
       const clientExists = await Client.findOne({
         where: {
-          email: request.body.email,
+          [Op.or]: [{ email: request.body.email }, { cpf: request.body.cpf }],
         },
       });
 
@@ -51,38 +52,37 @@ class ClientController {
         });
       }
 
-      client = await Client.create({
+      const createdUser = await Client.create({
         ...request.body,
         avatar_id: avatarData.id || null,
       });
+
+      client = await Client.findByPk(createdUser.id, {
+        attributes: {
+          exclude: ['password_hash', 'avatar_id'],
+        },
+        include: [
+          {
+            model: File,
+            as: 'avatar',
+            attributes: ['id', 'path', 'url'],
+          },
+        ],
+      });
     } catch (error) {
-      if (avatarData) await clearJunk(avatarData.filename);
+      console.log(error);
+      if (avatarData) await clearJunk(avatarData.path, avatarData.id);
       return response.status(500).json({ error: 'Internal error.' });
     }
-    return response.json({
-      id: client.id,
-      name: client.name,
-      email: client.email,
-      age: client.age,
-      cpf: client.cpf,
-      cep: client.cep,
-      address: client.address,
-      neighborhood: client.neighborhood,
-      city: client.city,
-      state: client.state,
-      gender: client.gender,
-      phone: client.phone,
-      birth_date: client.birth_date,
-    });
+    return response.json(client);
   }
 
   async show(request, response) {
     let loggedUser;
     try {
-      loggedUser = await Client.findOne({
-        where: { id: request.userId },
+      loggedUser = await Client.findByPk(request.userId, {
         attributes: {
-          exclude: ['password_hash'],
+          exclude: ['password_hash', 'avatar_id'],
         },
         include: [
           {

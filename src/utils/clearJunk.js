@@ -1,18 +1,16 @@
 import { unlink } from 'fs';
 import { resolve } from 'path';
+import { promisify } from 'util';
 import File from '../app/models/File';
 
-export default async (filename) => {
+export default async (filename, id) => {
   try {
-    unlink(
-      resolve(__dirname, '..', '..', '..', 'tmp', 'uploads', filename),
-      (err) => console.log(err)
+    await promisify(unlink)(
+      resolve(__dirname, '..', '..', 'tmp', 'uploads', filename)
     );
 
-    await File.destroy({ where: { name: filename } });
-
-    return true;
+    await File.destroy({ where: { id } });
   } catch (error) {
-    return false;
+    throw new Error(error);
   }
 };
