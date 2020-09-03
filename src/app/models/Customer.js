@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize';
 import bcrypt from 'bcryptjs';
 
-class Client extends Sequelize.Model {
+class Customer extends Sequelize.Model {
   static init(sequelize) {
     super.init(
       {
@@ -43,4 +43,4 @@ class Client extends Sequelize.Model {
   }
 }
 
-export default Client;
+export default Customer;

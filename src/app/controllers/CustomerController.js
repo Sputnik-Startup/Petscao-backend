@@ -1,11 +1,11 @@
 import * as Yup from 'yup';
 import { Op } from 'sequelize';
-import Client from '../models/Client';
+import Customer from '../models/Customer';
 import File from '../models/File';
 import clearJunk from '../../utils/clearJunk';
 import validateCpf from '../../utils/validateCpf';
 
-class ClientController {
+class CustomerController {
   async create(request, response) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
@@ -25,26 +25,36 @@ class ClientController {
 
     const avatar = request.file;
 
+    if (
+      request.headers['content-type'].split(';')[0] !== 'multipart/form-data'
+    ) {
+      clearJunk(avatar.filename);
+      return response
+        .status(400)
+        .json({ error: 'Content type must be multipart/form-data' });
+    }
+
     if (!(await schema.isValid(request.body))) {
       clearJunk(avatar.filename);
       return response.status(400).json({ error: 'Validation fails.' });
     }
-    let client;
-    let avatarData;
 
     if (!validateCpf(request.body.cpf)) {
       clearJunk(avatar.filename);
       return response.status(400).json({ error: 'Invalid CPF.' });
     }
 
+    let customer;
+    let avatarData;
+
     try {
-      const clientExists = await Client.findOne({
+      const customerExists = await Customer.findOne({
         where: {
           [Op.or]: [{ email: request.body.email }, { cpf: request.body.cpf }],
         },
       });
 
-      if (clientExists) {
+      if (customerExists) {
         clearJunk(avatar.filename);
         return response.status(400).json({ error: 'User already exists.' });
       }
@@ -56,12 +66,12 @@ class ClientController {
         });
       }
 
-      const createdUser = await Client.create({
+      const createdUser = await Customer.create({
         ...request.body,
         avatar_id: avatarData.id || null,
       });
 
-      client = await Client.findByPk(createdUser.id, {
+      customer = await Customer.findByPk(createdUser.id, {
         attributes: {
           exclude: ['password_hash', 'avatar_id'],
         },
@@ -77,13 +87,13 @@ class ClientController {
       await clearJunk(avatar.filename, avatarData && avatarData.id);
       return response.status(500).json({ error: 'Internal error.' });
     }
-    return response.json(client);
+    return response.json(customer);
   }
 
   async show(request, response) {
     let loggedUser;
     try {
-      loggedUser = await Client.findByPk(request.userId, {
+      loggedUser = await Customer.findByPk(request.userId, {
         attributes: {
           exclude: ['password_hash', 'avatar_id'],
         },
@@ -132,7 +142,7 @@ class ClientController {
     }
 
     const { email, oldPassword } = request.body;
-    const user = await Client.findByPk(request.userId);
+    const user = await Customer.findByPk(request.userId);
     if (user.email !== email) {
       return response
         .status(400)
@@ -144,7 +154,7 @@ class ClientController {
     }
 
     await user.update(request.body);
-    const updatedUser = await Client.findByPk(user.id, {
+    const updatedUser = await Customer.findByPk(user.id, {
       attributes: {
         exclude: ['password_hash', 'avatar_id'],
       },
@@ -161,4 +171,4 @@ class ClientController {
   }
 }
 
-export default new ClientController();
+export default new CustomerController();

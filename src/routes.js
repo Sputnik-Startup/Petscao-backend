@@ -1,8 +1,8 @@
 import express from 'express';
 import multer from 'multer';
 
-import ClientSessionController from './app/controllers/ClientSessionController';
-import ClientController from './app/controllers/ClientController';
+import CustomerSessionController from './app/controllers/CustomerSessionController';
+import CustomerController from './app/controllers/CustomerController';
 
 import auth from './app/middlewares/auth';
 import multerConfig from './config/multer';
@@ -12,21 +12,19 @@ import PetController from './app/controllers/PetController';
 const routes = express.Router();
 const upload = multer(multerConfig);
 
-routes.post('/session', ClientSessionController.create);
+routes.post('/session', CustomerSessionController.create);
 
-routes.post('/client', upload.single('avatar'), ClientController.create);
+routes.post('/customer', upload.single('avatar'), CustomerController.create);
 
 routes.use(auth);
 
-routes.get('/client/me', ClientController.show);
-routes.put('/client', ClientController.update);
-routes.patch(
-  '/client/avatar',
-  upload.single('avatar'),
-  AvatarController.update
-);
+routes.get('/customer/me', CustomerController.show);
+routes.put('/customer', CustomerController.update);
+routes.patch('/avatar', upload.single('avatar'), AvatarController.update);
 
-routes.post('/client/pet', upload.single('avatar'), PetController.create);
-routes.get('/client/pet', PetController.index);
+routes.post('/customer/pet', upload.single('avatar'), PetController.create);
+routes.get('/customer/pet', PetController.index);
+routes.put('/customer/pet/:id', PetController.update);
+routes.delete('/customer/pet/:id', PetController.delete);
 
 export default routes;

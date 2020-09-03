@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 import jwt from 'jsonwebtoken';
-import Client from '../models/Client';
+import Customer from '../models/Customer';
 import authConfig from '../../config/auth';
 
 class SessionController {
@@ -16,19 +16,19 @@ class SessionController {
 
     const { email, password } = request.body;
 
-    const client = await Client.findOne({
+    const customer = await Customer.findOne({
       where: { email },
     });
 
-    if (!(await client.checkPassword(password))) {
+    if (!(await customer.checkPassword(password))) {
       return response.status(400).json({ error: 'Password does not match' });
     }
 
-    client.password_hash = undefined;
+    customer.password_hash = undefined;
 
     return response.json({
-      user: client,
-      token: jwt.sign({ id: client.id }, authConfig.secret),
+      user: customer,
+      token: jwt.sign({ id: customer.id }, authConfig.secret),
     });
   }
 }

@@ -15,10 +15,18 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      sex: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      breed: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       owner_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'clients',
+          model: 'customers',
           key: 'id',
         },
         onUpdate: 'CASCADE',

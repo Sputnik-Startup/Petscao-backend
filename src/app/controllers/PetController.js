@@ -8,6 +8,8 @@ class PetController {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       type: Yup.string().required(),
+      sex: Yup.string().required(),
+      breed: Yup.string().required(),
     });
 
     const petAvatar = request.file;
@@ -35,11 +37,13 @@ class PetController {
         });
       }
 
-      const { name, type } = request.body;
+      const { name, type, breed, sex } = request.body;
 
       const createdPet = await Pet.create({
         name,
         type,
+        sex,
+        breed,
         owner_id: request.userId,
         avatar_id: avatarData.id || null,
       });
@@ -79,6 +83,75 @@ class PetController {
     }
 
     return response.json(pet);
+  }
+
+  async update(request, response) {
+    const schema = Yup.object().shape({
+      name: Yup.string().required(),
+      type: Yup.string().required(),
+      sex: Yup.string().required(),
+      breed: Yup.string().required(),
+    });
+
+    if (!(await schema.isValid(request.body))) {
+      return response.status(400).json({ error: 'Validation fails.' });
+    }
+
+    const { id } = request.params;
+
+    if (!id) {
+      return response.status(400).json({ error: 'Id not provided' });
+    }
+
+    let petUpdated;
+    try {
+      const petExists = await Pet.findOne({
+        where: { id, owner_id: request.userId },
+      });
+
+      if (!petExists) {
+        return response.status(404).json({ error: 'Pet not found.' });
+      }
+
+      petUpdated = await petExists.update(request.body);
+    } catch (error) {
+      return response.status(500).json({ error: 'Internal error' });
+    }
+
+    return response.json(petUpdated);
+  }
+
+  async delete(request, response) {
+    const { id } = request.params;
+
+    if (!id) {
+      return response.status(400).json({ error: 'Id not provided.' });
+    }
+
+    try {
+      const pet = await Pet.findOne({
+        where: { id, owner_id: request.userId },
+        include: [
+          {
+            model: File,
+            as: 'avatar',
+            attributes: ['id', 'path'],
+          },
+        ],
+      });
+
+      if (!pet) {
+        return response.status(404).json({ error: 'Pet not found.' });
+      }
+
+      await clearJunk(pet.avatar.path, pet.avatar.id);
+
+      await pet.destroy();
+    } catch (error) {
+      return response.status(500).json({ error: 'Internal error.' });
+    }
+
+    return response.status(204).send();
   }
 }
 

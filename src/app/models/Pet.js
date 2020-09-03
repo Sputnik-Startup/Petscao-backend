@@ -6,6 +6,8 @@ class Pet extends Model {
       {
         name: Sequelize.STRING,
         type: Sequelize.STRING,
+        sex: Sequelize.STRING,
+        breed: Sequelize.STRING,
       },
       {
         sequelize,
