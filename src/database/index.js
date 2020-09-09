@@ -3,8 +3,10 @@ import config from '../config/database';
 import Customer from '../app/models/Customer';
 import File from '../app/models/File';
 import Pet from '../app/models/Pet';
+import Purchase from '../app/models/Purchase';
+import Appointment from '../app/models/Appointment';
 
-const models = [Customer, File, Pet];
+const models = [Customer, File, Pet, Purchase, Appointment];
 
 class Database {
   constructor() {

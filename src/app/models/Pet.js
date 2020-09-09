@@ -18,7 +18,7 @@ class Pet extends Model {
   }
 
   static associate(models) {
-    this.belongsTo(models.Client, { foreignKey: 'owner_id', as: 'owner' });
+    this.belongsTo(models.Customer, { foreignKey: 'owner_id', as: 'owner' });
     this.belongsTo(models.File, { foreignKey: 'avatar_id', as: 'avatar' });
   }
 }

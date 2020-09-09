@@ -1,15 +1,11 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('appointments', {
+    return queryInterface.createTable('purchases', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-      },
-      date: {
-        allowNull: false,
-        type: Sequelize.DATE,
       },
       user_id: {
         type: Sequelize.INTEGER,
@@ -25,8 +21,22 @@ module.exports = {
         onDelete: 'SET NULL',
         allowNull: true,
       },
-      canceled_at: {
-        type: Sequelize.DATE,
+      descount: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      price: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      total_price: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      is_valid: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -40,6 +50,6 @@ module.exports = {
   },
 
   down: (queryInterface) => {
-    return queryInterface.dropTable('appointments');
+    return queryInterface.dropTable('purchases');
   },
 };
