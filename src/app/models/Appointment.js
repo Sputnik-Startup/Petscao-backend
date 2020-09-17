@@ -29,12 +29,20 @@ class Appointment extends Model {
 
     this.addHook('beforeSave', async (appointment) => {
       const purchases = await Purchase.findAll({
-        where: { is_valid: true },
+        where: { user_id: appointment.user_id, is_valid: true },
+        limit: 10,
       });
 
-      if (purchases.length >= 10) {
-        await purchases.update({ is_valid: false });
+      if (purchases.length === 10) {
+        await Purchase.update(
+          { is_valid: false },
+          {
+            where: { user_id: appointment.user_id, is_valid: true },
+            limit: 10,
+          }
+        );
         appointment.descount = true;
+        return;
       }
       appointment.descount = false;
     });
