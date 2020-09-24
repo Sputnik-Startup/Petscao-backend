@@ -1,4 +1,4 @@
-import Purchase from '../models/Purchase';
+import Purchase from '../../models/Purchase';
 
 class DescountController {
   async show(request, response) {

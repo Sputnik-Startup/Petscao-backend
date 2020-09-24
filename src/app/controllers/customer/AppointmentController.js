@@ -11,10 +11,10 @@ import {
 } from 'date-fns';
 import { Op } from 'sequelize';
 
-import Pet from '../models/Pet';
-import Customer from '../models/Customer';
-import Appointment from '../models/Appointment';
-import File from '../models/File';
+import Pet from '../../models/Pet';
+import Customer from '../../models/Customer';
+import Appointment from '../../models/Appointment';
+import File from '../../models/File';
 
 class AppointmentController {
   async create(request, response) {
@@ -89,17 +89,24 @@ class AppointmentController {
       fri: 5,
       sat: 6,
     };
-    const { page = 1, day } = request.query;
+    const { page = 1, day, order = 'newest' } = request.query;
+    const orderBy = {
+      newest: 'DESC',
+      oldest: 'ASC',
+    };
+
+    if (!orderBy[order]) {
+      return response.status(400).json({ error: 'Invalid order value.' });
+    }
 
     if (day && !Object.keys(weekDays).includes(day)) {
       return response.status(400).json({ error: 'Invalid day.' });
     }
     let appointments = {};
     const options = {
-      order: ['date'],
-      attributes: ['id', 'date', 'past', 'cancelable'],
-      limit: 20,
-      offset: (page - 1) * 20,
+      order: [['date', orderBy[order]]],
+      limit: 25,
+      offset: (page - 1) * 25,
       include: [
         {
           model: Customer,

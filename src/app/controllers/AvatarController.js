@@ -1,4 +1,5 @@
 import Customer from '../models/Customer';
+import Employee from '../models/Employee';
 import File from '../models/File';
 import clearJunk from '../../utils/clearJunk';
 import Pet from '../models/Pet';
@@ -22,7 +23,8 @@ class AvatarController {
       }
       let target;
       if (context === 'customer') {
-        target = await Customer.findByPk(request.userId, {
+        const { user_id = null } = request.params;
+        target = await Customer.findByPk(user_id || request.userId, {
           include: [
             {
               model: File,
@@ -49,6 +51,16 @@ class AvatarController {
             },
           ],
         });
+      } else if (context === 'employee') {
+        target = await Employee.findByPk(request.userId, {
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['id', 'path'],
+            },
+          ],
+        });
       }
 
       await clearJunk(target.avatar.path, target.avatar.id);
@@ -59,10 +71,14 @@ class AvatarController {
       });
 
       await target.update({ avatar_id: avatar.id });
-      avatarUpdated = await Customer.findByPk(request.userId, {
-        attributes: {
-          exclude: ['password_hash'],
-        },
+
+      const modelCondition = {
+        customer: Customer,
+        pet: Pet,
+        employee: Employee,
+      };
+
+      avatarUpdated = await modelCondition[context].findByPk(target.id, {
         include: [
           {
             model: File,
@@ -71,6 +87,10 @@ class AvatarController {
           },
         ],
       });
+
+      if (avatarUpdated.password_hash) {
+        avatarUpdated.password_hash = undefined;
+      }
     } catch (error) {
       await clearJunk(newAvatar.filename, avatarUpdated && avatarUpdated.id);
       return response.status(500).json({ error: 'Internal error.' });

@@ -1,10 +1,16 @@
 import * as Yup from 'yup';
-import File from '../models/File';
-import Pet from '../models/Pet';
-import clearJunk from '../../utils/clearJunk';
+import File from '../../models/File';
+import Pet from '../../models/Pet';
+import clearJunk from '../../../utils/clearJunk';
 
 class PetController {
   async create(request, response) {
+    const { user_id } = request.headers;
+
+    if (!user_id) {
+      return response.status(400).json({ error: 'User id not provided.' });
+    }
+
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       type: Yup.string().required(),
@@ -44,7 +50,7 @@ class PetController {
         type,
         sex,
         breed,
-        owner_id: request.userId,
+        owner_id: user_id,
         avatar_id: avatarData.id || null,
       });
 
@@ -66,18 +72,41 @@ class PetController {
   }
 
   async index(request, response) {
+    const { user_id } = request.headers;
+    const { page = 1, order = 'newest' } = request.query;
+    const orderBy = {
+      newest: 'DESC',
+      oldest: 'ASC',
+    };
+
+    if (!orderBy[order]) {
+      return response.status(400).json({ error: 'Invalid order value.' });
+    }
+
     let pet;
+    const options = {
+      order: [['createdAt', orderBy[order]]],
+      limit: 25,
+      offset: (page - 1) * 25,
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
+    };
     try {
-      pet = await Pet.findAll({
-        where: { owner_id: request.userId },
-        include: [
-          {
-            model: File,
-            as: 'avatar',
-            attributes: ['id', 'path', 'url'],
-          },
-        ],
-      });
+      if (user_id) {
+        pet = await Pet.findAll({
+          where: { owner_id: user_id },
+          ...options,
+        });
+      } else {
+        pet = await Pet.findAll({
+          ...options,
+        });
+      }
     } catch (error) {
       return response.status(500).json({ error: 'Internal error.' });
     }
@@ -86,6 +115,12 @@ class PetController {
   }
 
   async update(request, response) {
+    const { user_id } = request.headers;
+
+    if (!user_id) {
+      return response.status(400).json({ error: 'User id not provided.' });
+    }
+
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       type: Yup.string().required(),
@@ -106,7 +141,7 @@ class PetController {
     let petUpdated;
     try {
       const petExists = await Pet.findOne({
-        where: { id, owner_id: request.userId },
+        where: { id, owner_id: user_id },
       });
 
       if (!petExists) {
@@ -122,6 +157,12 @@ class PetController {
   }
 
   async delete(request, response) {
+    const { user_id } = request.headers;
+
+    if (!user_id) {
+      return response.status(400).json({ error: 'User id not provided.' });
+    }
+
     const { id } = request.params;
 
     if (!id) {
@@ -130,7 +171,7 @@ class PetController {
 
     try {
       const pet = await Pet.findOne({
-        where: { id, owner_id: request.userId },
+        where: { id, owner_id: user_id },
         include: [
           {
             model: File,

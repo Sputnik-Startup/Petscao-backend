@@ -10,7 +10,7 @@ import {
   parseISO,
 } from 'date-fns';
 import { Op } from 'sequelize';
-import Appointment from '../models/Appointment';
+import Appointment from '../../models/Appointment';
 
 class AvailableController {
   async show(request, response) {

@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import Purchase from '../models/Purchase';
+import Purchase from '../../models/Purchase';
 
 class PurchaseController {
   async create(request, response) {
@@ -30,6 +30,31 @@ class PurchaseController {
     });
 
     return response.json(purchase);
+  }
+
+  async index(request, response) {
+    const { page = 1, order = 'newest' } = request.query;
+    const orderBy = {
+      newest: 'DESC',
+      oldest: 'ASC',
+    };
+
+    if (!orderBy[order]) {
+      return response.status(400).json({ error: 'Invalid order value.' });
+    }
+
+    let purchases = [];
+    try {
+      purchases = await Purchase.findAll({
+        order: [['createdAt', orderBy[order]]],
+        limit: 25,
+        offset: (page - 1) * 25,
+      });
+    } catch (error) {
+      return response.status(500).json({ error: 'Internal error.' });
+    }
+
+    return response.json(purchases);
   }
 }
 

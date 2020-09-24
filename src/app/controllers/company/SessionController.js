@@ -1,12 +1,12 @@
 import * as Yup from 'yup';
 import jwt from 'jsonwebtoken';
-import Customer from '../models/Customer';
-import authConfig from '../../config/auth';
+import Employee from '../../models/Employee';
+import authConfig from '../../../config/auth';
 
 class SessionController {
   async create(request, response) {
     const schema = Yup.object().shape({
-      email: Yup.string().email().required(),
+      username: Yup.string().required(),
       password: Yup.string().required(),
     });
 
@@ -14,21 +14,21 @@ class SessionController {
       return response.status(400).json({ error: 'Credencials not provided.' });
     }
 
-    const { email, password } = request.body;
+    const { username, password } = request.body;
 
-    const customer = await Customer.findOne({
-      where: { email },
+    const employee = await Employee.findOne({
+      where: { username },
     });
 
-    if (!(await customer.checkPassword(password))) {
+    if (!(await employee.checkPassword(password))) {
       return response.status(400).json({ error: 'Password does not match' });
     }
 
-    customer.password_hash = undefined;
+    employee.password_hash = undefined;
 
     return response.json({
-      user: customer,
-      token: jwt.sign({ id: customer.id }, authConfig.secret),
+      user: employee,
+      token: jwt.sign({ id: employee.id }, authConfig.secret),
     });
   }
 }

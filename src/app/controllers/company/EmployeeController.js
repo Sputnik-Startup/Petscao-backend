@@ -1,15 +1,15 @@
 import * as Yup from 'yup';
 import { Op } from 'sequelize';
-import Customer from '../models/Customer';
-import File from '../models/File';
-import clearJunk from '../../utils/clearJunk';
-import validateCpf from '../../utils/validateCpf';
+import Employee from '../../models/Employee';
+import File from '../../models/File';
+import clearJunk from '../../../utils/clearJunk';
+import validateCpf from '../../../utils/validateCpf';
 
-class CustomerController {
+class EmployeeController {
   async create(request, response) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
-      email: Yup.string().email().required(),
+      username: Yup.string().required(),
       cpf: Yup.string().required(),
       password: Yup.string().min(8).required(),
       age: Yup.number().required(),
@@ -44,17 +44,20 @@ class CustomerController {
       return response.status(400).json({ error: 'Invalid CPF.' });
     }
 
-    let customer;
+    let employee;
     let avatarData;
 
     try {
-      const customerExists = await Customer.findOne({
+      const EmployeeExists = await Employee.findOne({
         where: {
-          [Op.or]: [{ email: request.body.email }, { cpf: request.body.cpf }],
+          [Op.or]: [
+            { username: request.body.username },
+            { cpf: request.body.cpf },
+          ],
         },
       });
 
-      if (customerExists) {
+      if (EmployeeExists) {
         clearJunk(avatar.filename);
         return response.status(400).json({ error: 'User already exists.' });
       }
@@ -66,12 +69,12 @@ class CustomerController {
         });
       }
 
-      const createdUser = await Customer.create({
+      const createdUser = await Employee.create({
         ...request.body,
         avatar_id: avatarData.id || null,
       });
 
-      customer = await Customer.findByPk(createdUser.id, {
+      employee = await Employee.findByPk(createdUser.id, {
         attributes: {
           exclude: ['password_hash', 'avatar_id'],
         },
@@ -85,15 +88,17 @@ class CustomerController {
       });
     } catch (error) {
       await clearJunk(avatar.filename, avatarData && avatarData.id);
+
+      console.log(error);
       return response.status(500).json({ error: 'Internal error.' });
     }
-    return response.json(customer);
+    return response.json(employee);
   }
 
   async show(request, response) {
     let loggedUser;
     try {
-      loggedUser = await Customer.findByPk(request.userId, {
+      loggedUser = await Employee.findByPk(request.userId, {
         attributes: {
           exclude: ['password_hash', 'avatar_id'],
         },
@@ -115,7 +120,7 @@ class CustomerController {
   async update(request, response) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
-      email: Yup.string().email().required(),
+      username: Yup.string().required(),
       cpf: Yup.string().required(),
       oldPassword: Yup.string().min(6),
       password: Yup.string()
@@ -141,9 +146,9 @@ class CustomerController {
       return response.status(400).json({ error: 'Validation fails' });
     }
 
-    const { email, oldPassword } = request.body;
-    const user = await Customer.findByPk(request.userId);
-    if (user.email !== email) {
+    const { username, oldPassword } = request.body;
+    const user = await Employee.findByPk(request.userId);
+    if (user.username !== username) {
       return response
         .status(400)
         .json({ error: 'You can only update your own profile.' });
@@ -154,9 +159,9 @@ class CustomerController {
     }
 
     await user.update(request.body);
-    const updatedUser = await Customer.findByPk(user.id, {
+    const updatedUser = await Employee.findByPk(user.id, {
       attributes: {
-        exclude: ['password_hash', 'avatar_id'],
+        exclude: ['password_hash'],
       },
       include: [
         {
@@ -169,6 +174,41 @@ class CustomerController {
 
     return response.json(updatedUser);
   }
+
+  async index(request, response) {
+    const { page = 1, order = 'newest' } = request.query;
+    const orderBy = {
+      newest: 'DESC',
+      oldest: 'ASC',
+    };
+
+    if (!orderBy[order]) {
+      return response.status(400).json({ error: 'Invalid order value.' });
+    }
+
+    let employees = [];
+    try {
+      employees = await Employee.findAll({
+        order: [['createdAt', orderBy[order]]],
+        attributes: {
+          exclude: ['password_hash'],
+        },
+        limit: 25,
+        offset: (page - 1) * 25,
+        include: [
+          {
+            model: File,
+            as: 'avatar',
+            attributes: ['id', 'path', 'url'],
+          },
+        ],
+      });
+    } catch (error) {
+      return response.status(500).json({ error: 'Internal error.' });
+    }
+
+    return response.json(employees);
+  }
 }
 
-export default new CustomerController();
+export default new EmployeeController();
