@@ -89,7 +89,6 @@ class EmployeeController {
     } catch (error) {
       await clearJunk(avatar.filename, avatarData && avatarData.id);
 
-      console.log(error);
       return response.status(500).json({ error: 'Internal error.' });
     }
     return response.json(employee);

@@ -8,6 +8,7 @@ import PetController from './app/controllers/customer/PetController';
 import AppointmentController from './app/controllers/customer/AppointmentController';
 import AvailableController from './app/controllers/customer/AvailableController';
 import DescountController from './app/controllers/customer/DescountController';
+import LikeController from './app/controllers/customer/LikeController';
 
 import PurchaseController from './app/controllers/company/PurchaseController';
 import CompanyCustomerController from './app/controllers/company/CustomerController';
@@ -15,6 +16,7 @@ import CompanyAppointmentController from './app/controllers/company/AppointmentC
 import EmployeeController from './app/controllers/company/EmployeeController';
 import CompanyPetController from './app/controllers/company/PetController';
 import CompanySessionController from './app/controllers/company/SessionController';
+import PostController from './app/controllers/company/PostController';
 
 import auth from './app/middlewares/auth';
 import access from './app/middlewares/access';
@@ -23,7 +25,8 @@ import multerConfig from './config/multer';
 const routes = express.Router();
 const upload = multer(multerConfig);
 
-routes.post('/session', CustomerSessionController.create);
+routes.post('/customer/session', CustomerSessionController.create);
+routes.post('/company/session', CompanySessionController.create);
 
 routes.post('/customer', upload.single('avatar'), CustomerController.create);
 
@@ -43,10 +46,10 @@ routes.post('/customer/appointment', AppointmentController.create);
 routes.get('/customer/appointment', AppointmentController.index);
 routes.delete('/customer/appointment', AppointmentController.delete);
 
+routes.post('/customer/post/:post_id/like', LikeController.create);
+
 routes.get('/appointment/available', AvailableController.show);
 routes.get('/descount', DescountController.show);
-
-routes.post('/company/session', CompanySessionController.create);
 
 routes.get('/employee/me', EmployeeController.show);
 routes.get('/employee', EmployeeController.index);
@@ -72,6 +75,9 @@ routes.delete('/company/appointment', CompanyAppointmentController.delete);
 
 routes.post('/company/purchase', PurchaseController.create);
 routes.get('/company/purchase', PurchaseController.index);
+
+routes.post('/company/post', upload.single('midia'), PostController.create);
+routes.get('/company/post', PostController.index);
 
 routes.use(access);
 
