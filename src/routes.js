@@ -78,6 +78,8 @@ routes.get('/company/purchase', PurchaseController.index);
 
 routes.post('/company/post', upload.single('midia'), PostController.create);
 routes.get('/company/post', PostController.index);
+routes.delete('/company/post', PostController.delete);
+routes.update('/company/post', PostController.update);
 
 routes.use(access);
 

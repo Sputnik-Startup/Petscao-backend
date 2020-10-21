@@ -6,11 +6,6 @@ class Post extends Model {
   static init(sequelize) {
     super.init(
       {
-        id: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
         title: Sequelize.STRING,
         likes: Sequelize.VIRTUAL,
         comments: Sequelize.VIRTUAL,

@@ -80,8 +80,84 @@ class PostController {
     return response.json(postPopulated);
   }
 
+  async update(request, response) {
+    const schema = Yup.object().shape({
+      title: Yup.string(),
+    });
+
+    if (!(await schema.isValid(request.body))) {
+      return response.status(400).json({ error: 'Validation fails.' });
+    }
+
+    const { title } = request.body;
+    const { post_id } = request.params;
+    const midia = request.file;
+
+    if (
+      request.headers['content-type'].split(';')[0] !== 'multipart/form-data'
+    ) {
+      clearJunk(midia.filename);
+      return response
+        .status(400)
+        .json({ error: 'Content type must be multipart/form-data' });
+    }
+
+    if (!midia && !title) {
+      return response.status(400).json({ error: 'No content provided' });
+    }
+
+    const post = await Post.findByPk(post_id);
+    const midiaFile = await File.findByPk(post.midia);
+    try {
+      if (midia) {
+        clearJunk(midiaFile.path);
+        midiaFile.update({
+          name: midia.originalname,
+          path: midia.filename,
+        });
+      } else {
+        midiaFile.destroy();
+      }
+      post.update({
+        title,
+      });
+    } catch (err) {
+      if (midia) {
+        clearJunk(midia.filename);
+      }
+
+      return response.status(501).json({ error: 'Internal error.' });
+    }
+
+    const postPopulated = await Post.findByPk(post.id, {
+      include: [
+        {
+          model: File,
+          as: 'midia',
+          attributes: ['url', 'path'],
+        },
+        {
+          model: Employee,
+          as: 'employee',
+          attributes: ['name'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['url', 'path'],
+            },
+          ],
+        },
+      ],
+    });
+
+    await postPopulated.getCommentsAndLikes(postPopulated.id);
+
+    return response.json(postPopulated);
+  }
+
   async index(request, response) {
-    const { page = 1, order = 'newest', u } = request.query;
+    const { page = 1, order = 'newest', employee_target: u } = request.query;
 
     const orderBy = {
       newest: 'DESC',
@@ -138,6 +214,22 @@ class PostController {
     );
 
     return response.json(posts);
+  }
+
+  async delete(request, response) {
+    const { post_id } = request.params;
+
+    if (!post_id) {
+      return response.status(400).json({ error: 'Post id not provided.' });
+    }
+
+    try {
+      await Post.destroy({ where: { id: post_id } });
+    } catch (error) {
+      return response.status(500).json({ error: 'Internal error.' });
+    }
+
+    return response.status(204).send();
   }
 }
 
