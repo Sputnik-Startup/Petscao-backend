@@ -46,7 +46,8 @@ routes.post('/customer/appointment', AppointmentController.create);
 routes.get('/customer/appointment', AppointmentController.index);
 routes.delete('/customer/appointment', AppointmentController.delete);
 
-routes.post('/customer/post/:post_id/like', LikeController.create);
+routes.post('/customer/post/like', LikeController.create);
+routes.delete('/customer/post/like', LikeController.delete);
 
 routes.get('/appointment/available', AvailableController.show);
 routes.get('/descount', DescountController.show);
@@ -78,8 +79,12 @@ routes.get('/company/purchase', PurchaseController.index);
 
 routes.post('/company/post', upload.single('midia'), PostController.create);
 routes.get('/company/post', PostController.index);
-routes.delete('/company/post', PostController.delete);
-routes.update('/company/post', PostController.update);
+routes.delete('/company/post/:post_id', PostController.delete);
+routes.put(
+  '/company/post/:post_id',
+  upload.single('midia'),
+  PostController.update
+);
 
 routes.use(access);
 

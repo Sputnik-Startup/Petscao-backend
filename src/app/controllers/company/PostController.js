@@ -107,18 +107,18 @@ class PostController {
     }
 
     const post = await Post.findByPk(post_id);
-    const midiaFile = await File.findByPk(post.midia);
+    const midiaFile = await File.findByPk(post.midia_id);
     try {
       if (midia) {
         clearJunk(midiaFile.path);
-        midiaFile.update({
+        await midiaFile.update({
           name: midia.originalname,
           path: midia.filename,
         });
       } else {
-        midiaFile.destroy();
+        await midiaFile.destroy();
       }
-      post.update({
+      await post.update({
         title,
       });
     } catch (err) {
@@ -129,31 +129,7 @@ class PostController {
       return response.status(501).json({ error: 'Internal error.' });
     }
 
-    const postPopulated = await Post.findByPk(post.id, {
-      include: [
-        {
-          model: File,
-          as: 'midia',
-          attributes: ['url', 'path'],
-        },
-        {
-          model: Employee,
-          as: 'employee',
-          attributes: ['name'],
-          include: [
-            {
-              model: File,
-              as: 'avatar',
-              attributes: ['url', 'path'],
-            },
-          ],
-        },
-      ],
-    });
-
-    await postPopulated.getCommentsAndLikes(postPopulated.id);
-
-    return response.json(postPopulated);
+    return response.status(204).send();
   }
 
   async index(request, response) {
