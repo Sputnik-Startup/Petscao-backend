@@ -19,6 +19,7 @@ class PetController {
     });
 
     const petAvatar = request.file;
+
     if (
       request.headers['content-type'].split(';')[0] !== 'multipart/form-data'
     ) {
@@ -27,9 +28,12 @@ class PetController {
         .status(400)
         .json({ error: 'Content type must be multipart/form-data' });
     }
-    if (!(await schema.isValid(request.body))) {
+
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
       clearJunk(petAvatar.filename);
-      return response.status(400).json({ error: 'Validation fails.' });
+      return response.json({ error: error.errors.join('. ') });
     }
 
     let avatar;
@@ -115,7 +119,7 @@ class PetController {
   }
 
   async update(request, response) {
-    const { user_id } = request.headers;
+    const { u: user_id } = request.headers;
 
     if (!user_id) {
       return response.status(400).json({ error: 'User id not provided.' });
@@ -128,8 +132,10 @@ class PetController {
       breed: Yup.string().required(),
     });
 
-    if (!(await schema.isValid(request.body))) {
-      return response.status(400).json({ error: 'Validation fails.' });
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.json({ error: error.errors.join('. ') });
     }
 
     const { id } = request.params;

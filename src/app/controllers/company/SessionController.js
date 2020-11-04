@@ -10,8 +10,10 @@ class SessionController {
       password: Yup.string().required(),
     });
 
-    if (!(await schema.isValid(request.body))) {
-      return response.status(400).json({ error: 'Credencials not provided.' });
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.json({ error: error.errors.join('. ') });
     }
 
     const { username, password } = request.body;

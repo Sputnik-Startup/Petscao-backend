@@ -4,6 +4,11 @@ class Pet extends Model {
   static init(sequelize) {
     super.init(
       {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.UUIDV4,
+          primaryKey: true,
+        },
         name: Sequelize.STRING,
         type: Sequelize.STRING,
         sex: Sequelize.STRING,

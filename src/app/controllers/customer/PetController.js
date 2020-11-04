@@ -12,24 +12,28 @@ class PetController {
       breed: Yup.string().required(),
     });
 
-    const petAvatar = request.file;
     if (
       request.headers['content-type'].split(';')[0] !== 'multipart/form-data'
     ) {
-      clearJunk(petAvatar.filename);
       return response
         .status(400)
         .json({ error: 'Content type must be multipart/form-data' });
     }
-    if (!(await schema.isValid(request.body))) {
+
+    const petAvatar = request.file;
+
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
       clearJunk(petAvatar.filename);
-      return response.status(400).json({ error: 'Validation fails.' });
+      return response.json({ error: error.errors.join('. ') });
     }
 
     let avatar;
     let pet;
     try {
       let avatarData;
+
       if (petAvatar) {
         avatarData = await File.create({
           name: petAvatar.originalname,
@@ -43,9 +47,9 @@ class PetController {
         name,
         type,
         sex,
-        breed,
+        breed: breed.toUpperCase(),
         owner_id: request.userId,
-        avatar_id: avatarData.id || null,
+        avatar_id: avatarData ? avatarData.id : null,
       });
 
       pet = await Pet.findByPk(createdPet.id, {
@@ -59,6 +63,7 @@ class PetController {
       });
     } catch (error) {
       if (petAvatar) clearJunk(petAvatar.filename, avatar && avatar.id);
+
       return response.status(500).json({ error: 'Internal error.' });
     }
 
@@ -106,8 +111,10 @@ class PetController {
       breed: Yup.string().required(),
     });
 
-    if (!(await schema.isValid(request.body))) {
-      return response.status(400).json({ error: 'Validation fails.' });
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.json({ error: error.errors.join('. ') });
     }
 
     const { id } = request.params;

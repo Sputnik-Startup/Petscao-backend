@@ -1,9 +1,11 @@
 import express from 'express';
 import multer from 'multer';
 
+import AvatarController from './app/controllers/AvatarController';
+import CommentController from './app/controllers/CommentController';
+
 import CustomerSessionController from './app/controllers/customer/CustomerSessionController';
 import CustomerController from './app/controllers/customer/CustomerController';
-import AvatarController from './app/controllers/AvatarController';
 import PetController from './app/controllers/customer/PetController';
 import AppointmentController from './app/controllers/customer/AppointmentController';
 import AvailableController from './app/controllers/customer/AvailableController';
@@ -20,6 +22,7 @@ import PostController from './app/controllers/company/PostController';
 
 import auth from './app/middlewares/auth';
 import access from './app/middlewares/access';
+import employee from './app/middlewares/employee';
 import multerConfig from './config/multer';
 
 const routes = express.Router();
@@ -30,7 +33,6 @@ routes.post('/company/session', CompanySessionController.create);
 
 routes.post('/customer', upload.single('avatar'), CustomerController.create);
 
-routes.post('/employee', upload.single('avatar'), EmployeeController.create);
 routes.use(auth);
 
 routes.get('/customer/me', CustomerController.show);
@@ -52,9 +54,12 @@ routes.delete('/customer/post/like', LikeController.delete);
 routes.get('/appointment/available', AvailableController.show);
 routes.get('/descount', DescountController.show);
 
+routes.post('/posts/comment', CommentController.create);
+routes.get('/posts/comment', CommentController.index);
+
+routes.use(employee);
+
 routes.get('/employee/me', EmployeeController.show);
-routes.get('/employee', EmployeeController.index);
-routes.put('/employee', EmployeeController.update);
 
 routes.get('/company/customer', CompanyCustomerController.index);
 routes.get('/company/customer/:id', CompanyCustomerController.show);
@@ -87,5 +92,9 @@ routes.put(
 );
 
 routes.use(access);
+
+routes.put('/employee', EmployeeController.update);
+routes.get('/employee', EmployeeController.index);
+routes.post('/employee', upload.single('avatar'), EmployeeController.create);
 
 export default routes;

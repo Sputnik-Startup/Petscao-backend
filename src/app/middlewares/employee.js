@@ -6,15 +6,16 @@ export default async (request, response, next) => {
       const user = await Employee.findOne({
         where: {
           id: request.userId,
-          username: request.username,
         },
       });
-
-      if (user.access === 'adm') {
+      console.log(user);
+      if (user) {
         return next();
       }
 
-      return response.status(401).json({ error: 'Access denied.' });
+      return response
+        .status(401)
+        .json({ error: 'Only Employees can access this feature.' });
     } catch (error) {
       return response.status(500).json({ error: 'Internal error.' });
     }

@@ -63,8 +63,10 @@ class CustomerController {
       cep: Yup.string().required(),
     });
 
-    if (!(await schema.isValid(request.body))) {
-      return response.status(400).json({ error: 'Validation fails' });
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.json({ error: error.errors.join('. ') });
     }
 
     const { email, oldPassword } = request.body;

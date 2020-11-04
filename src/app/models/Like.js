@@ -1,9 +1,15 @@
-import { Model } from 'sequelize';
+import Sequelize, { Model } from 'sequelize';
 
 class Like extends Model {
   static init(sequelize) {
     super.init(
-      {},
+      {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.UUIDV4,
+          primaryKey: true,
+        },
+      },
       {
         sequelize,
       }

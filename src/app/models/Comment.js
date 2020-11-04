@@ -4,6 +4,11 @@ class Comment extends Model {
   static init(sequelize) {
     super.init(
       {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.UUIDV4,
+          primaryKey: true,
+        },
         content: Sequelize.STRING,
         ref: Sequelize.STRING,
       },

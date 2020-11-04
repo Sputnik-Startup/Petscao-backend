@@ -6,6 +6,11 @@ class Appointment extends Model {
   static init(sequelize) {
     super.init(
       {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.UUIDV4,
+          primaryKey: true,
+        },
         date: Sequelize.DATE,
         canceled_at: Sequelize.DATE,
         past: {

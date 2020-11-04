@@ -6,6 +6,11 @@ class Post extends Model {
   static init(sequelize) {
     super.init(
       {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.UUIDV4,
+          primaryKey: true,
+        },
         title: Sequelize.STRING,
         likes: Sequelize.VIRTUAL,
         comments: Sequelize.VIRTUAL,

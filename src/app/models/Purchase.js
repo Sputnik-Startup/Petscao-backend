@@ -4,6 +4,11 @@ class Purchase extends Model {
   static init(sequelize) {
     super.init(
       {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.UUIDV4,
+          primaryKey: true,
+        },
         descount: Sequelize.STRING,
         price: Sequelize.STRING,
         total_price: Sequelize.STRING,

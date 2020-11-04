@@ -9,8 +9,10 @@ class PurchaseController {
       total_price: Yup.string().required(),
     });
 
-    if (!(await schema.isValid(request.body))) {
-      return response.status(400).json({ error: 'Validation fails.' });
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.json({ error: error.errors.join('. ') });
     }
 
     // eslint-disable-next-line prefer-const

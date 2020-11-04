@@ -2,20 +2,20 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('purchases', {
       id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
       },
       user_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         references: { model: 'customers', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
         allowNull: true,
       },
       pet_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         references: { model: 'pets', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',

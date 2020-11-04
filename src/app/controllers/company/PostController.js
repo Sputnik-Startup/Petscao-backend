@@ -11,12 +11,15 @@ class PostController {
       title: Yup.string(),
     });
 
-    if (!(await schema.isValid(request.body))) {
-      return response.status(400).json({ error: 'Validation fails.' });
-    }
-
     const { title } = request.body;
     const midia = request.file;
+
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      clearJunk(midia.filename);
+      return response.json({ error: error.errors.join('. ') });
+    }
 
     if (
       request.headers['content-type'].split(';')[0] !== 'multipart/form-data'

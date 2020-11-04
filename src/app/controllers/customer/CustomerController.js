@@ -34,9 +34,11 @@ class CustomerController {
         .json({ error: 'Content type must be multipart/form-data' });
     }
 
-    if (!(await schema.isValid(request.body))) {
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
       clearJunk(avatar.filename);
-      return response.status(400).json({ error: 'Validation fails.' });
+      return response.json({ error: error.errors.join('. ') });
     }
 
     if (!validateCpf(request.body.cpf)) {
@@ -137,8 +139,10 @@ class CustomerController {
       cep: Yup.string().required(),
     });
 
-    if (!(await schema.isValid(request.body))) {
-      return response.status(400).json({ error: 'Validation fails' });
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.json({ error: error.errors.join('. ') });
     }
 
     const { email, oldPassword } = request.body;

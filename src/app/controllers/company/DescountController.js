@@ -2,7 +2,7 @@ import Purchase from '../../models/Purchase';
 
 class DescountController {
   async show(request, response) {
-    const { user_id } = request.headers;
+    const { u: user_id } = request.query;
 
     if (!user_id) {
       return response.status(400).json({ error: 'User_id not provided.' });
@@ -24,7 +24,7 @@ class DescountController {
   }
 
   async update(request, response) {
-    const { user_id } = request.headers;
+    const { u: user_id } = request.query;
 
     if (!user_id) {
       return response.status(400).json({ error: 'User_id not provided.' });

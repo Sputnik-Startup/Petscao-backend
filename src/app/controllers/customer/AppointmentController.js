@@ -20,11 +20,13 @@ class AppointmentController {
   async create(request, response) {
     const schema = Yup.object().shape({
       date: Yup.date().required(),
-      pet_id: Yup.number().required(),
+      pet_id: Yup.string().required(),
     });
 
-    if (!(await schema.isValid(request.body))) {
-      return response.status(400).json({ error: 'Validation fails.' });
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.json({ error: error.errors.join('. ') });
     }
 
     const { date, pet_id } = request.body;
