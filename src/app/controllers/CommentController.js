@@ -2,12 +2,12 @@ import * as Yup from 'yup';
 import Comment from '../models/Comment';
 import Customer from '../models/Customer';
 import Employee from '../models/Employee';
+import File from '../models/File';
 
 class CommentController {
   async create(request, response) {
     const schema = Yup.object().shape({
       content: Yup.string().required(),
-      ref: Yup.string().required().equals(['comment', 'answer']),
     });
 
     try {
@@ -16,7 +16,7 @@ class CommentController {
       return response.json({ error: error.errors.join('. ') });
     }
 
-    const { ref, content } = request.body;
+    const { content } = request.body;
     const { p: post_id, context } = request.query;
 
     if (!['employee', 'customer'].includes(context)) {
@@ -34,7 +34,6 @@ class CommentController {
       if (context === 'employee') {
         comment = await Comment.create({
           content,
-          ref,
           customer_id: null,
           employee_id: request.userId,
           post_id,
@@ -42,7 +41,6 @@ class CommentController {
       } else {
         comment = await Comment.create({
           content,
-          ref,
           customer_id: request.userId,
           employee_id: null,
           post_id,
@@ -64,16 +62,31 @@ class CommentController {
         where: {
           post_id,
         },
+        order: [['created_at', 'ASC']],
         include: [
           {
             model: Employee,
             as: 'employee',
-            attributes: ['name'],
+            attributes: ['id', 'name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+              },
+            ],
           },
           {
             model: Customer,
             as: 'customer',
-            attributes: ['name'],
+            attributes: ['id', 'name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+              },
+            ],
           },
         ],
       });
@@ -82,6 +95,108 @@ class CommentController {
     }
 
     return response.json(comments);
+  }
+
+  async delete(request, response) {
+    const { comment_id } = request.params;
+    const { context } = request.query;
+
+    if (!['employee', 'customer'].includes(context)) {
+      return response.status(400).json({
+        error: 'Context value must be equals to "customer" or "employee".',
+      });
+    }
+
+    if (!comment_id) {
+      return response.status(400).json({ error: 'Comment id not provided.' });
+    }
+
+    try {
+      if (context === 'customer') {
+        const comment = await Comment.findOne({
+          where: { id: comment_id, customer_id: request.userId },
+        });
+
+        if (!comment) {
+          return response
+            .status(401)
+            .json({ error: "You must be comment's author" });
+        }
+      } else if (context === 'employee') {
+        const comment = await Comment.findOne({
+          where: { id: comment_id, employee_id: request.userId },
+        });
+
+        if (!comment) {
+          return response
+            .status(401)
+            .json({ error: "You must be comment's author" });
+        }
+      }
+
+      await Comment.destroy({
+        where: {
+          id: comment_id,
+        },
+      });
+    } catch (error) {
+      return response.status(500).json({ error: 'Internal error.' });
+    }
+
+    return response.status(204).send();
+  }
+
+  async update(request, response) {
+    const schema = Yup.object().shape({
+      content: Yup.string().required(),
+    });
+
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.json({ error: error.errors.join('. ') });
+    }
+
+    const { context } = request.query;
+
+    if (!['employee', 'customer'].includes(context)) {
+      return response.status(400).json({
+        error: 'Context value must be equals to "customer" or "employee".',
+      });
+    }
+
+    const { content } = request.body;
+    const { comment_id } = request.params;
+
+    try {
+      if (context === 'customer') {
+        const comment = await Comment.findOne({
+          where: { id: comment_id, customer_id: request.userId },
+        });
+
+        if (!comment) {
+          return response
+            .status(401)
+            .json({ error: "You must be comment's author" });
+        }
+      } else if (context === 'employee') {
+        const comment = await Comment.findOne({
+          where: { id: comment_id, employee_id: request.userId },
+        });
+
+        if (!comment) {
+          return response
+            .status(401)
+            .json({ error: "You must be comment's author" });
+        }
+      }
+
+      await Comment.update({ content }, { where: { id: comment_id } });
+    } catch (error) {
+      return response.status(500).json({ error: 'Internal error.' });
+    }
+
+    return response.status(204).send();
   }
 }
 

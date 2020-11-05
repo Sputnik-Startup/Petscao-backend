@@ -110,6 +110,7 @@ class CustomerController {
     }
 
     let users;
+
     const options = {
       limit: 25,
       offset: (page - 1) * 25,
@@ -125,6 +126,7 @@ class CustomerController {
         },
       ],
     };
+
     try {
       if (q) {
         users = await Customer.findAll({

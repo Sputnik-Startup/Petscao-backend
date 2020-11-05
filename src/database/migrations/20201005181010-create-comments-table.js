@@ -25,10 +25,6 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      ref: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
       post_id: {
         type: Sequelize.UUID,
         references: {

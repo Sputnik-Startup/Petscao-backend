@@ -1,4 +1,5 @@
 import Sequelize from 'sequelize';
+import mongoose from 'mongoose';
 import config from '../config/database';
 import Customer from '../app/models/Customer';
 import File from '../app/models/File';
@@ -38,7 +39,17 @@ class Database {
       );
   }
 
-  mongo() {}
+  mongo() {
+    mongoose.connect(
+      `mongodb+srv://maxuser:maol963662339@omnistack.pqlxe.mongodb.net/petscao?retryWrites=true&w=majority`,
+      {
+        useNewUrlParser: true,
+        useFindAndModify: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true,
+      }
+    );
+  }
 }
 
 export default new Database();

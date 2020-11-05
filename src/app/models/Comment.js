@@ -10,7 +10,6 @@ class Comment extends Model {
           primaryKey: true,
         },
         content: Sequelize.STRING,
-        ref: Sequelize.STRING,
       },
       {
         sequelize,

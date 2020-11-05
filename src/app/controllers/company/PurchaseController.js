@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
 import Purchase from '../../models/Purchase';
+import Notification from '../../schemas/Notification';
 
 class PurchaseController {
   async create(request, response) {
@@ -30,6 +31,23 @@ class PurchaseController {
       user_id,
       pet_id,
     });
+
+    let purchases;
+    if (user_id) {
+      purchases = await Purchase.findAll({
+        where: { user_id, is_valid: true },
+        limit: 10,
+      });
+    }
+
+    if (purchases.length === 10 && user_id) {
+      await Notification.create({
+        type: 'DESCOUNT',
+        content:
+          'Você atingiu 10 compras. Você terá um desconto no próximo agendamento.',
+        to: user_id,
+      });
+    }
 
     return response.json(purchase);
   }
