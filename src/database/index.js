@@ -40,15 +40,19 @@ class Database {
   }
 
   mongo() {
-    mongoose.connect(
-      `mongodb+srv://maxuser:maol963662339@omnistack.pqlxe.mongodb.net/petscao?retryWrites=true&w=majority`,
-      {
-        useNewUrlParser: true,
-        useFindAndModify: true,
-        useUnifiedTopology: true,
-        useCreateIndex: true,
-      }
-    );
+    mongoose
+      .connect(
+        `mongodb+srv://maxuser:maol963662339@omnistack.pqlxe.mongodb.net/petscao-v2?retryWrites=true&w=majority`,
+        {
+          useNewUrlParser: true,
+          useFindAndModify: true,
+          useUnifiedTopology: true,
+          useCreateIndex: true,
+        }
+      )
+      .then(() => {
+        console.log('Mongo connected!');
+      });
   }
 }
 

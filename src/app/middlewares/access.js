@@ -6,7 +6,6 @@ export default async (request, response, next) => {
       const user = await Employee.findOne({
         where: {
           id: request.userId,
-          username: request.username,
         },
       });
 

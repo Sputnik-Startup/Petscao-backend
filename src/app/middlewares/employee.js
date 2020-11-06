@@ -8,7 +8,7 @@ export default async (request, response, next) => {
           id: request.userId,
         },
       });
-      console.log(user);
+
       if (user) {
         return next();
       }

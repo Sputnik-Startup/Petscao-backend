@@ -19,6 +19,7 @@ import EmployeeController from './app/controllers/company/EmployeeController';
 import CompanyPetController from './app/controllers/company/PetController';
 import CompanySessionController from './app/controllers/company/SessionController';
 import PostController from './app/controllers/company/PostController';
+import NotificationController from './app/controllers/company/NotificationController';
 
 import auth from './app/middlewares/auth';
 import access from './app/middlewares/access';
@@ -94,6 +95,8 @@ routes.put(
 );
 
 routes.use(access);
+
+routes.post('/company/notifications', NotificationController.create);
 
 routes.put('/employee', EmployeeController.update);
 routes.get('/employee', EmployeeController.index);
