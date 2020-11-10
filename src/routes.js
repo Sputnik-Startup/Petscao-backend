@@ -60,6 +60,8 @@ routes.get('/posts/comment', CommentController.index);
 routes.put('/posts/comment/:comment_id', CommentController.update);
 routes.delete('/posts/comment/:comment_id', CommentController.delete);
 
+routes.get('/notifications', NotificationController.index);
+
 routes.use(employee);
 
 routes.get('/employee/me', EmployeeController.show);
@@ -80,7 +82,7 @@ routes.delete('/company/pet/:id', CompanyPetController.delete);
 routes.post('/company/appointment', CompanyAppointmentController.create);
 routes.get('/company/appointment', CompanyAppointmentController.index);
 routes.put('/company/appointment/:id', CompanyAppointmentController.update);
-routes.delete('/company/appointment', CompanyAppointmentController.delete);
+routes.delete('/company/appointment/:id', CompanyAppointmentController.delete);
 
 routes.post('/company/purchase', PurchaseController.create);
 routes.get('/company/purchase', PurchaseController.index);

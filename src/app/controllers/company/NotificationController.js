@@ -90,6 +90,22 @@ class NotificationController {
 
     return response.json(notification);
   }
+
+  async index(request, response) {
+    let notifications;
+    try {
+      notifications = await Notification.find({ to: request.userId });
+
+      await Notification.updateMany(
+        { to: request.userId, read: false },
+        { read: true }
+      );
+    } catch (error) {
+      return response.status(500).json({ error: 'Internal error' });
+    }
+
+    return response.json(notifications);
+  }
 }
 
 export default new NotificationController();

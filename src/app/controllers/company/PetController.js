@@ -76,8 +76,7 @@ class PetController {
   }
 
   async index(request, response) {
-    const { user_id } = request.headers;
-    const { page = 1, order = 'newest' } = request.query;
+    const { page = 1, order = 'newest', owner } = request.query;
     const orderBy = {
       newest: 'DESC',
       oldest: 'ASC',
@@ -101,9 +100,9 @@ class PetController {
       ],
     };
     try {
-      if (user_id) {
+      if (owner) {
         pet = await Pet.findAll({
-          where: { owner_id: user_id },
+          where: { owner_id: owner },
           ...options,
         });
       } else {
