@@ -11,7 +11,7 @@ class CancellationMail {
     const { appointment } = data;
 
     await Mail.sendMail({
-      to: `${appointment.customer.name} <maxwellmacedo2015@gmail.com>`,
+      to: `${appointment.customer.name} <${appointment.customer.email}>`,
       subject: 'Agendamento cancelado',
       template: 'cancellation',
       context: {

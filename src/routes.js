@@ -11,6 +11,7 @@ import AppointmentController from './app/controllers/customer/AppointmentControl
 import AvailableController from './app/controllers/customer/AvailableController';
 import DescountController from './app/controllers/customer/DescountController';
 import LikeController from './app/controllers/customer/LikeController';
+import ForgotPassController from './app/controllers/customer/ForgotPassController';
 
 import PurchaseController from './app/controllers/company/PurchaseController';
 import CompanyCustomerController from './app/controllers/company/CustomerController';
@@ -33,6 +34,9 @@ routes.post('/customer/session', CustomerSessionController.create);
 routes.post('/company/session', CompanySessionController.create);
 
 routes.post('/customer', upload.single('avatar'), CustomerController.create);
+
+routes.get('/customer/forgotpass', ForgotPassController.get);
+routes.post('/customer/forgotpass', ForgotPassController.create);
 
 routes.use(auth);
 
