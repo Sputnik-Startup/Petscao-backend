@@ -8,6 +8,7 @@ import {
   isAfter,
   isSunday,
   parseISO,
+  isBefore,
 } from 'date-fns';
 import { Op } from 'sequelize';
 import Appointment from '../../models/Appointment';
@@ -22,6 +23,12 @@ class AvailableController {
 
     if (isSunday(parseISO(date))) {
       return response.status(400).json({ error: "We don't work on Sundays." });
+    }
+
+    if (isBefore(parseISO(date), new Date())) {
+      return response
+        .status(400)
+        .json({ error: 'Datas passadas não são permitidas' });
     }
 
     const searchDate = parseISO(date);

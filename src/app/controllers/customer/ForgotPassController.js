@@ -1,5 +1,4 @@
 import * as Yup from 'yup';
-import bcrypt from 'bcryptjs';
 
 import Queue from '../../../lib/Queue';
 import ForgotPassMail from '../../jobs/ForgotPassMail';
@@ -15,22 +14,17 @@ class ForgotPassController {
 
     let link;
     try {
-      // const customer = await Customer.findOne({
-      //   where: { email },
-      // });
+      const customer = await Customer.findOne({
+        where: { email },
+      });
 
-      // if (!customer) {
-      //   return response
-      //     .status(404)
-      //     .json({ error: `Customer with email ${email} does not exists.` });
-      // }
+      if (!customer) {
+        return response
+          .status(404)
+          .json({ error: `Customer with email ${email} does not exists.` });
+      }
 
-      const hashId = await bcrypt.hash(
-        'e4bad568-dd89-47ce-92ec-5d075c5753b6',
-        8
-      );
-
-      link = `${process.env.FP_CLIENT_URL}${hashId}`;
+      link = `${process.env.FP_CLIENT_URL}${customer.id}`;
 
       await Queue.add(ForgotPassMail.key, {
         customer: { name: 'Maxwell Macedo' },
@@ -55,18 +49,22 @@ class ForgotPassController {
       return response.json({ error: error.errors.join('. ') });
     }
 
-    const { c: hashId } = request.query;
+    const { c: id } = request.query;
 
-    if (!hashId) {
+    if (!id) {
       return response.status(400).json({ error: 'Customer id not provided.' });
     }
 
     const { password } = request.body;
 
-    try {
-      const id = bcrypt.decodeBase64(hashId);
+    const customer = await Customer.findByPk(id);
 
-      await Customer.update({ password }, { where: { id } });
+    if (!customer) {
+      return response.status(400).json({ error: 'Invalid id.' });
+    }
+
+    try {
+      await customer.update({ password });
     } catch (error) {
       return response.status(500).json({ error: 'Internal error.' });
     }

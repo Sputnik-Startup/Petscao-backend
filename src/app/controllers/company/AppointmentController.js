@@ -22,14 +22,14 @@ class AppointmentController {
   async create(request, response) {
     const schema = Yup.object().shape({
       date: Yup.date().required(),
-      pet_id: Yup.number().required(),
-      user_id: Yup.number().required(),
+      pet_id: Yup.string().required(),
+      user_id: Yup.string().required(),
     });
 
     try {
       await schema.validate(request.body);
     } catch (error) {
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     const { date, pet_id, user_id } = request.body;
@@ -51,7 +51,7 @@ class AppointmentController {
     if (petExists.owner.id !== user_id) {
       return response
         .status(400)
-        .json({ error: 'This pet does not belong to the logged in user.' });
+        .json({ error: 'Esse pet não pertence à este usuário' });
     }
 
     const hourStart = startOfHour(parseISO(date));
@@ -81,7 +81,36 @@ class AppointmentController {
       date: hourStart,
     });
 
-    return response.json(appointments);
+    const appointment = await Appointment.findByPk(appointments.id, {
+      include: [
+        {
+          model: Customer,
+          as: 'customer',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['id', 'path', 'url'],
+            },
+          ],
+        },
+        {
+          model: Pet,
+          as: 'pet',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['id', 'path', 'url'],
+            },
+          ],
+        },
+      ],
+    });
+
+    return response.json(appointment);
   }
 
   async index(request, response) {
@@ -187,7 +216,7 @@ class AppointmentController {
     }
     appointment.cancelable = false;
     appointment.canceled_at = new Date();
-    // await appointment.save();
+    await appointment.save();
 
     await Queue.add(CancellationMail.key, { appointment });
 
@@ -205,8 +234,6 @@ class AppointmentController {
 
     const schema = Yup.object().shape({
       date: Yup.date().required(),
-      pet_id: Yup.number().required(),
-      user_id: Yup.number().required(),
     });
 
     try {
@@ -215,27 +242,7 @@ class AppointmentController {
       return response.json({ error: error.errors.join('. ') });
     }
 
-    const { date, pet_id, user_id } = request.body;
-
-    const petExists = await Pet.findByPk(pet_id, {
-      include: [
-        {
-          model: Customer,
-          as: 'owner',
-          attributes: ['id'],
-        },
-      ],
-    });
-
-    if (!petExists) {
-      return response.status(404).json({ error: 'Pet not found.' });
-    }
-
-    if (petExists.owner.id !== user_id) {
-      return response
-        .status(400)
-        .json({ error: 'This pet does not belong to the logged in user.' });
-    }
+    const { date } = request.body;
 
     const hourStart = startOfHour(parseISO(date));
 
@@ -263,8 +270,6 @@ class AppointmentController {
 
     await Appointment.update(
       {
-        user_id,
-        pet_id,
         date: hourStart,
       },
       {

@@ -18,6 +18,10 @@ const NotificationSchema = new Schema(
     midia: {
       type: String,
     },
+    title: {
+      type: String,
+      required: true,
+    },
     content: {
       type: String,
       required: true,

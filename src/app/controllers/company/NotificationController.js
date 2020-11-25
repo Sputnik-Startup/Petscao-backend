@@ -4,7 +4,7 @@ import Employee from '../../models/Employee';
 
 class NotificationController {
   async create(request, response) {
-    const { content, type = 'ALERT', sendTo, to } = request.body;
+    const { content, type = 'ALERT', sendTo, to, title } = request.body;
 
     const typeValues = ['DESCOUNT', 'HAPPY_BIRTHDAY', 'ALERT', 'NOTIFY'];
 
@@ -29,6 +29,7 @@ class NotificationController {
                 type,
                 content,
                 to: id,
+                title,
               });
             })
           );
@@ -37,6 +38,7 @@ class NotificationController {
             type,
             content,
             to,
+            title,
           });
         }
       } else if (sendTo === 'all') {
@@ -54,6 +56,7 @@ class NotificationController {
               type,
               content,
               to: id,
+              title,
             })
           )
         );
@@ -67,6 +70,7 @@ class NotificationController {
               type,
               content,
               to: id,
+              title,
             })
           )
         );
@@ -80,6 +84,7 @@ class NotificationController {
               type,
               content,
               to: id,
+              title,
             })
           )
         );
@@ -94,7 +99,9 @@ class NotificationController {
   async index(request, response) {
     let notifications;
     try {
-      notifications = await Notification.find({ to: request.userId });
+      notifications = await Notification.find({ to: request.userId })
+        .limit(5)
+        .sort({ createdAt: -1 });
 
       await Notification.updateMany(
         { to: request.userId, read: false },

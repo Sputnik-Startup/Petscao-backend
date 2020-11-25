@@ -32,6 +32,7 @@ const upload = multer(multerConfig);
 
 routes.post('/customer/session', CustomerSessionController.create);
 routes.post('/company/session', CompanySessionController.create);
+routes.get('/appointment/available', AvailableController.show);
 
 routes.post('/customer', upload.single('avatar'), CustomerController.create);
 
@@ -56,7 +57,6 @@ routes.delete('/customer/appointment', AppointmentController.delete);
 routes.post('/customer/post/like', LikeController.create);
 routes.delete('/customer/post/like', LikeController.delete);
 
-routes.get('/appointment/available', AvailableController.show);
 routes.get('/descount', DescountController.show);
 
 routes.post('/posts/comment', CommentController.create);
@@ -90,6 +90,8 @@ routes.delete('/company/appointment/:id', CompanyAppointmentController.delete);
 
 routes.post('/company/purchase', PurchaseController.create);
 routes.get('/company/purchase', PurchaseController.index);
+routes.put('/company/purchase/:purchase_id', PurchaseController.update);
+routes.delete('/company/purchase/:purchase_id', PurchaseController.delete);
 
 routes.post('/company/post', upload.single('midia'), PostController.create);
 routes.get('/company/post', PostController.index);

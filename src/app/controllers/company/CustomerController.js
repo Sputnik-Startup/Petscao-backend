@@ -131,9 +131,23 @@ class CustomerController {
       if (q) {
         users = await Customer.findAll({
           where: {
-            cpf: {
-              [Op.like]: `${q}%`,
-            },
+            [Op.or]: [
+              {
+                cpf: {
+                  [Op.like]: `${q}%`,
+                },
+              },
+              {
+                name: {
+                  [Op.like]: `${q}%`,
+                },
+              },
+              {
+                email: {
+                  [Op.like]: `${q}%`,
+                },
+              },
+            ],
           },
           ...options,
         });

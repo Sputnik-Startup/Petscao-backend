@@ -14,13 +14,6 @@ module.exports = {
         onDelete: 'SET NULL',
         allowNull: true,
       },
-      pet_id: {
-        type: Sequelize.UUID,
-        references: { model: 'pets', key: 'id' },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
-        allowNull: true,
-      },
       descount: {
         type: Sequelize.STRING,
         allowNull: false,

@@ -5,9 +5,9 @@ import clearJunk from '../../../utils/clearJunk';
 
 class PetController {
   async create(request, response) {
-    const { user_id } = request.headers;
+    const { c: owner_id } = request.query;
 
-    if (!user_id) {
+    if (!owner_id) {
       return response.status(400).json({ error: 'User id not provided.' });
     }
 
@@ -54,7 +54,7 @@ class PetController {
         type,
         sex,
         breed,
-        owner_id: user_id,
+        owner_id,
         avatar_id: avatarData.id || null,
       });
 

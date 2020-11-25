@@ -1,10 +1,14 @@
 import * as Yup from 'yup';
 import Purchase from '../../models/Purchase';
+import Customer from '../../models/Customer';
+import Pet from '../../models/Pet';
+import File from '../../models/File';
 import Notification from '../../schemas/Notification';
 
 class PurchaseController {
   async create(request, response) {
     const schema = Yup.object().shape({
+      user_id: Yup.string(),
       descount: Yup.string().required(),
       price: Yup.string().required(),
       total_price: Yup.string().required(),
@@ -17,19 +21,13 @@ class PurchaseController {
     }
 
     // eslint-disable-next-line prefer-const
-    let { descount, price, total_price, user_id, pet_id } = request.body;
-
-    if (!user_id || !pet_id) {
-      user_id = null;
-      pet_id = null;
-    }
+    let { descount, price, total_price, user_id = null } = request.body;
 
     const purchase = await Purchase.create({
       descount,
       price,
       total_price,
       user_id,
-      pet_id,
     });
 
     let purchases;
@@ -49,7 +47,24 @@ class PurchaseController {
       });
     }
 
-    return response.json(purchase);
+    const purchaseJoined = await Purchase.findByPk(purchase.id, {
+      include: [
+        {
+          model: Customer,
+          as: 'customer',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['id', 'path', 'url'],
+            },
+          ],
+        },
+      ],
+    });
+
+    return response.json(purchaseJoined);
   }
 
   async index(request, response) {
@@ -69,12 +84,118 @@ class PurchaseController {
         order: [['createdAt', orderBy[order]]],
         limit: 25,
         offset: (page - 1) * 25,
+        include: [
+          {
+            model: Customer,
+            as: 'customer',
+            attributes: ['id', 'name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+              },
+            ],
+          },
+          {
+            model: Pet,
+            as: 'pet',
+            attributes: ['id', 'name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+              },
+            ],
+          },
+        ],
       });
     } catch (error) {
-      return response.status(500).json({ error: 'Internal error.' });
+      return response.status(500).json({ error: error.message });
     }
 
     return response.json(purchases);
+  }
+
+  async update(request, response) {
+    const schema = Yup.object().shape({
+      descount: Yup.string().required(),
+      price: Yup.string().required(),
+      total_price: Yup.string().required(),
+    });
+
+    try {
+      await schema.validate(request.body);
+    } catch (error) {
+      return response.status(400).json({ error: error.errors.join('. ') });
+    }
+
+    const { purchase_id } = request.params;
+    const { descount, price, total_price } = request.body;
+    let purchase;
+    try {
+      purchase = await Purchase.findByPk(purchase_id, {
+        include: [
+          {
+            model: Customer,
+            as: 'customer',
+            attributes: ['id', 'name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+              },
+            ],
+          },
+          {
+            model: Pet,
+            as: 'pet',
+            attributes: ['id', 'name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+              },
+            ],
+          },
+        ],
+      });
+
+      if (!purchase) {
+        return response.status(404).json({ error: 'Compra não encontrada.' });
+      }
+
+      await purchase.update({
+        price,
+        total_price,
+        descount,
+      });
+    } catch (error) {
+      return response.status(500).json({ error: error.message });
+    }
+
+    return response.json(purchase);
+  }
+
+  async delete(request, response) {
+    const { purchase_id } = request.params;
+
+    const purchase = await Purchase.findByPk(purchase_id);
+
+    if (!purchase) {
+      return response.status(404).json({ error: 'Esta compra não existe.' });
+    }
+
+    try {
+      await purchase.destroy();
+    } catch (error) {
+      return response.status(500).json({ error: error.message });
+    }
+
+    return response.status(204).send();
   }
 }
 

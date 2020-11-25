@@ -1,6 +1,7 @@
 import * as Yup from 'yup';
 import jwt from 'jsonwebtoken';
 import Employee from '../../models/Employee';
+import File from '../../models/File';
 import authConfig from '../../../config/auth';
 
 class SessionController {
@@ -20,6 +21,12 @@ class SessionController {
 
     const employee = await Employee.findOne({
       where: { username },
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+        },
+      ],
     });
 
     if (!(await employee.checkPassword(password))) {
