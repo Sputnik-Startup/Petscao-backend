@@ -25,7 +25,9 @@ class AvailableController {
       return response.status(400).json({ error: "We don't work on Sundays." });
     }
 
-    if (isBefore(parseISO(date), new Date())) {
+    const dayStart = startOfDay(parseISO(date));
+
+    if (isBefore(dayStart, startOfDay(new Date()))) {
       return response
         .status(400)
         .json({ error: 'Datas passadas não são permitidas' });

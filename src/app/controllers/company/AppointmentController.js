@@ -54,7 +54,8 @@ class AppointmentController {
         .json({ error: 'Esse pet não pertence à este usuário' });
     }
 
-    const hourStart = startOfHour(parseISO(date));
+    const hourStart = parseISO(date);
+    console.log(isBefore(hourStart, new Date()));
 
     if (isBefore(hourStart, new Date())) {
       return response
