@@ -69,7 +69,7 @@ class Application {
 
         this.redisClient.set(decoded.id, socket.id);
       } catch (err) {
-        console.log(err);
+        //
       }
     });
   }

@@ -26,6 +26,7 @@ import auth from './app/middlewares/auth';
 import access from './app/middlewares/access';
 import employee from './app/middlewares/employee';
 import multerConfig from './config/multer';
+import AppointmentByMonth from './app/controllers/company/AppointmentByMonth';
 
 const routes = express.Router();
 const upload = multer(multerConfig);
@@ -95,6 +96,7 @@ routes.post('/company/appointment', CompanyAppointmentController.create);
 routes.get('/company/appointment', CompanyAppointmentController.index);
 routes.put('/company/appointment/:id', CompanyAppointmentController.update);
 routes.delete('/company/appointment/:id', CompanyAppointmentController.delete);
+routes.get('/company/appointment/month', AppointmentByMonth.index);
 
 routes.post('/company/purchase', PurchaseController.create);
 routes.get('/company/purchase', PurchaseController.index);
@@ -114,7 +116,7 @@ routes.use(access);
 
 routes.post('/company/notifications', NotificationController.create);
 
-routes.put('/employee', EmployeeController.update);
+routes.put('/employee/:id', EmployeeController.update);
 routes.get('/employee', EmployeeController.index);
 routes.post('/employee', upload.single('avatar'), EmployeeController.create);
 

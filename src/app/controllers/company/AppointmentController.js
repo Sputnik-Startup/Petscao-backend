@@ -7,7 +7,6 @@ import {
   addDays,
   startOfDay,
   endOfDay,
-  subHours,
 } from 'date-fns';
 import { Op } from 'sequelize';
 
@@ -206,7 +205,16 @@ class AppointmentController {
       });
     }
 
-    return response.json(appointments);
+    const total = await Appointment.count({ distinct: true, col: 'id' });
+    const canceled = await Appointment.count({
+      where: { canceled_at: { [Op.not]: null } },
+      distinct: true,
+      col: 'id',
+    });
+
+    const responseData = { total, canceled, appointments };
+
+    return response.json(responseData);
   }
 
   async delete(request, response) {
@@ -220,13 +228,6 @@ class AppointmentController {
       ],
     });
 
-    const dateWithSub = subHours(appointment.date, 2);
-
-    if (isBefore(dateWithSub, new Date())) {
-      return response.status(401).json({
-        error: 'You can only cancel appointments 2 hours advance.',
-      });
-    }
     appointment.cancelable = false;
     appointment.canceled_at = new Date();
     await appointment.save();

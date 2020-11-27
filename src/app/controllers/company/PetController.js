@@ -2,13 +2,14 @@ import * as Yup from 'yup';
 import File from '../../models/File';
 import Pet from '../../models/Pet';
 import clearJunk from '../../../utils/clearJunk';
+import Customer from '../../models/Customer';
 
 class PetController {
   async create(request, response) {
     const { c: owner_id } = request.query;
 
     if (!owner_id) {
-      return response.status(400).json({ error: 'User id not provided.' });
+      return response.status(400).json({ error: 'Owner id not provided.' });
     }
 
     const schema = Yup.object().shape({
@@ -97,6 +98,11 @@ class PetController {
           as: 'avatar',
           attributes: ['id', 'path', 'url'],
         },
+        {
+          model: Customer,
+          as: 'owner',
+          attributes: ['id', 'name'],
+        },
       ],
     };
     try {
@@ -118,12 +124,6 @@ class PetController {
   }
 
   async update(request, response) {
-    const { u: user_id } = request.headers;
-
-    if (!user_id) {
-      return response.status(400).json({ error: 'User id not provided.' });
-    }
-
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       type: Yup.string().required(),
@@ -134,7 +134,7 @@ class PetController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     const { id } = request.params;
@@ -146,7 +146,7 @@ class PetController {
     let petUpdated;
     try {
       const petExists = await Pet.findOne({
-        where: { id, owner_id: user_id },
+        where: { id },
       });
 
       if (!petExists) {
@@ -155,19 +155,13 @@ class PetController {
 
       petUpdated = await petExists.update(request.body);
     } catch (error) {
-      return response.status(500).json({ error: 'Internal error' });
+      return response.status(500).json({ error: error.message });
     }
 
     return response.json(petUpdated);
   }
 
   async delete(request, response) {
-    const { user_id } = request.headers;
-
-    if (!user_id) {
-      return response.status(400).json({ error: 'User id not provided.' });
-    }
-
     const { id } = request.params;
 
     if (!id) {
@@ -176,7 +170,7 @@ class PetController {
 
     try {
       const pet = await Pet.findOne({
-        where: { id, owner_id: user_id },
+        where: { id },
         include: [
           {
             model: File,
@@ -190,11 +184,11 @@ class PetController {
         return response.status(404).json({ error: 'Pet not found.' });
       }
 
-      await clearJunk(pet.avatar.path, pet.avatar.id);
+      if (pet.avatar) await clearJunk(pet.avatar.path, pet.avatar.id);
 
       await pet.destroy();
     } catch (error) {
-      return response.status(500).json({ error: 'Internal error.' });
+      return response.status(500).json({ error: error.message });
     }
 
     return response.status(204).send();

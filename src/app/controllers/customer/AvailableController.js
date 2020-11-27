@@ -6,7 +6,6 @@ import {
   setSeconds,
   format,
   isAfter,
-  isSunday,
   parseISO,
   isBefore,
 } from 'date-fns';
@@ -19,10 +18,6 @@ class AvailableController {
 
     if (!date) {
       return response.status(400).json({ error: 'Invalid date' });
-    }
-
-    if (isSunday(parseISO(date))) {
-      return response.status(400).json({ error: "We don't work on Sundays." });
     }
 
     const dayStart = startOfDay(parseISO(date));

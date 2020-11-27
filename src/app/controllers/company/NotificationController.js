@@ -33,6 +33,11 @@ class NotificationController {
               });
             })
           );
+
+          const sockets = to.map((id) => request.redis.get(id));
+          sockets.forEach((socket) =>
+            request.io.to(socket).emit('notification', { notification })
+          );
         } else if (typeof to === 'string') {
           notification = await Notification.create({
             type,
@@ -40,6 +45,9 @@ class NotificationController {
             to,
             title,
           });
+
+          const socket = request.redis.get(to);
+          request.io.to(socket).emit('notification', { notification });
         }
       } else if (sendTo === 'all') {
         const customers = await Customer.findAll({ attributes: ['id'] });
@@ -60,6 +68,9 @@ class NotificationController {
             })
           )
         );
+
+        request.io.to('customers', { notification });
+        request.io.to('employees', { notification });
       } else if (sendTo === 'customers') {
         const customersArr = await Customer.findAll({ attributes: ['id'] });
         const customers = [...customersArr.map((c) => c.id)];
@@ -74,6 +85,8 @@ class NotificationController {
             })
           )
         );
+
+        request.io.to('customers', { notification });
       } else if (sendTo === 'employees') {
         const employeesArr = await Employee.findAll({ attributes: ['id'] });
         const employees = [...employeesArr.map((c) => c.id)];
@@ -88,6 +101,8 @@ class NotificationController {
             })
           )
         );
+
+        request.io.to('employees', { notification });
       }
     } catch (error) {
       return response.status(500).json({ error: 'Internal error.' });
