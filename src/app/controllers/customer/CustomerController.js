@@ -28,7 +28,7 @@ class CustomerController {
     if (
       request.headers['content-type'].split(';')[0] !== 'multipart/form-data'
     ) {
-      clearJunk(avatar.filename);
+      if (avatar) clearJunk(avatar.filename);
       return response
         .status(400)
         .json({ error: 'Content type must be multipart/form-data' });
@@ -37,17 +37,17 @@ class CustomerController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      clearJunk(avatar.filename);
+      if (avatar) clearJunk(avatar.filename);
       return response.json({ error: error.errors.join('. ') });
     }
 
     if (!validateCpf(request.body.cpf)) {
-      clearJunk(avatar.filename);
-      return response.status(400).json({ error: 'Invalid CPF.' });
+      if (avatar) clearJunk(avatar.filename);
+      return response.status(400).json({ error: 'CPF inválido.' });
     }
 
     let customer;
-    let avatarData;
+    let avatarData = {};
 
     try {
       const customerExists = await Customer.findOne({
@@ -86,8 +86,8 @@ class CustomerController {
         ],
       });
     } catch (error) {
-      await clearJunk(avatar.filename, avatarData && avatarData.id);
-      return response.status(500).json({ error: 'Internal error.' });
+      if (avatar) await clearJunk(avatar.filename, avatarData && avatarData.id);
+      return response.status(500).json({ error: error.message });
     }
     return response.json(customer);
   }
@@ -113,6 +113,9 @@ class CustomerController {
 
     return response.json(loggedUser);
   }
+  // where: {
+  //   sequelize.where(sequelize.fn("month", sequelize.col("fromDate")), fromMonth)
+  // }
 
   async update(request, response) {
     const schema = Yup.object().shape({
@@ -120,11 +123,11 @@ class CustomerController {
       email: Yup.string().email().required(),
       cpf: Yup.string().required(),
       oldPassword: Yup.string().min(6),
-      password: Yup.string()
-        .min(6)
-        .when('oldPassword', (oldPassword, field) =>
-          oldPassword ? field.required() : field
-        ),
+      password: Yup.string().test(
+        'empty-check',
+        'Password must be at least 8 characters',
+        (password) => password.length >= 8 || password.length === 0
+      ),
       confirmPassword: Yup.string().when('password', (password, field) =>
         password ? field.required().oneOf([Yup.ref('password')]) : field
       ),

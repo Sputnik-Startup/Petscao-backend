@@ -5,15 +5,15 @@ import File from '../../models/File';
 
 class CustomerController {
   async show(request, response) {
-    const { id: user_id } = request.params;
+    const { id: customer_id } = request.params;
 
-    if (!user_id) {
+    if (!customer_id) {
       return response.status(400).json({ error: 'User id not provided.' });
     }
 
     let target = {};
     try {
-      target = await Customer.findByPk(user_id, {
+      target = await Customer.findByPk(customer_id, {
         attributes: {
           exclude: ['password_hash', 'avatar_id'],
         },
@@ -33,22 +33,20 @@ class CustomerController {
   }
 
   async update(request, response) {
-    const { user_id } = request.headers;
+    const { customer_id } = request.params;
 
-    if (!user_id) {
+    if (!customer_id) {
       return response.status(400).json({ error: 'User id not provided.' });
     }
 
     const schema = Yup.object().shape({
       name: Yup.string().required(),
-      email: Yup.string().email().required(),
       cpf: Yup.string().required(),
-      oldPassword: Yup.string().min(6),
-      password: Yup.string()
-        .min(6)
-        .when('oldPassword', (oldPassword, field) =>
-          oldPassword ? field.required() : field
-        ),
+      password: Yup.string().test(
+        'empty-check',
+        'Password must be at least 8 characters',
+        (password) => password.length >= 8 || password.length === 0
+      ),
       confirmPassword: Yup.string().when('password', (password, field) =>
         password ? field.required().oneOf([Yup.ref('password')]) : field
       ),
@@ -66,25 +64,20 @@ class CustomerController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
-    const { email, oldPassword } = request.body;
-    const user = await Customer.findByPk(user_id);
-    if (user.email !== email) {
-      return response
-        .status(400)
-        .json({ error: 'You can only update your own profile.' });
+    const customer = await Customer.findByPk(customer_id);
+
+    try {
+      await customer.update(request.body);
+    } catch (error) {
+      return response.status(500).json({ error: error.message });
     }
 
-    if (oldPassword && !(await user.checkPassword(oldPassword))) {
-      return response.status(401).json({ error: 'Password does not match.' });
-    }
-
-    await user.update(request.body);
-    const updatedUser = await Customer.findByPk(user.id, {
+    const updatedCustomer = await Customer.findByPk(customer_id, {
       attributes: {
-        exclude: ['password_hash', 'avatar_id'],
+        exclude: ['password_hash'],
       },
       include: [
         {
@@ -95,7 +88,7 @@ class CustomerController {
       ],
     });
 
-    return response.json(updatedUser);
+    return response.json(updatedCustomer);
   }
 
   async index(request, response) {
@@ -159,6 +152,30 @@ class CustomerController {
     }
 
     return response.json(users);
+  }
+
+  async delete(request, response) {
+    const { customer_id } = request.params;
+
+    if (!customer_id) {
+      return response
+        .status(400)
+        .json({ error: 'Id do cliente não informado.' });
+    }
+
+    const customerExists = await Customer.findByPk(customer_id);
+
+    if (!customerExists) {
+      return response.status(404).json({ error: 'Este cliente não existe.' });
+    }
+
+    try {
+      await customerExists.destroy();
+    } catch (error) {
+      return response.staus(500).json({ error: error.message });
+    }
+
+    return response.status(204).send();
   }
 }
 

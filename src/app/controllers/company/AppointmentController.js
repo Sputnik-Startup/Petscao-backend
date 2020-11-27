@@ -54,8 +54,7 @@ class AppointmentController {
         .json({ error: 'Esse pet não pertence à este usuário' });
     }
 
-    const hourStart = parseISO(date);
-    console.log(isBefore(hourStart, new Date()));
+    const hourStart = startOfHour(parseISO(date));
 
     if (isBefore(hourStart, new Date())) {
       return response
@@ -124,7 +123,7 @@ class AppointmentController {
       fri: 5,
       sat: 6,
     };
-    const { page = 1, day, order = 'newest' } = request.query;
+    const { page = 1, day, date: dateTarget, order = 'newest' } = request.query;
     const orderBy = {
       newest: 'DESC',
       oldest: 'ASC',
@@ -176,6 +175,19 @@ class AppointmentController {
 
       const betweenDate = [startOfDay(referDay), endOfDay(referDay)];
 
+      appointments = await Appointment.findAll({
+        where: {
+          canceled_at: null,
+          date: {
+            [Op.between]: betweenDate,
+          },
+        },
+        ...options,
+      });
+    } else if (dateTarget) {
+      const dateQuery = startOfDay(parseISO(dateTarget));
+
+      const betweenDate = [dateQuery, endOfDay(parseISO(dateTarget))];
       appointments = await Appointment.findAll({
         where: {
           canceled_at: null,

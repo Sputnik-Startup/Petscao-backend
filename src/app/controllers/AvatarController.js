@@ -23,7 +23,7 @@ class AvatarController {
       }
       let target;
       if (context === 'customer') {
-        const { user_id = null } = request.params;
+        const { target_id: user_id = null } = request.params;
         target = await Customer.findByPk(user_id || request.userId, {
           include: [
             {
@@ -34,12 +34,12 @@ class AvatarController {
           ],
         });
       } else if (context === 'pet') {
-        const { petId } = request.query;
+        const { target_id: petId = null } = request.params;
 
         if (!petId) {
           clearJunk(newAvatar.filename);
           return response.status(400).json({
-            error: "Context is PET but petId wasn't provided in QUERY PARAMS.",
+            error: "Context is PET but petId wasn't provided in PARAMS.",
           });
         }
         target = await Pet.findByPk(petId, {
@@ -51,8 +51,9 @@ class AvatarController {
             },
           ],
         });
-      } else if (context === 'employee') {
-        target = await Employee.findByPk(request.userId, {
+      } else {
+        const { target_id: user_id = null } = request.params;
+        target = await Employee.findByPk(user_id || request.userId, {
           include: [
             {
               model: File,
@@ -63,7 +64,7 @@ class AvatarController {
         });
       }
 
-      await clearJunk(target.avatar.path, target.avatar.id);
+      if (target.avatar) await clearJunk(target.avatar.path, target.avatar.id);
 
       const avatar = await File.create({
         name: newAvatar.originalname,
@@ -79,6 +80,7 @@ class AvatarController {
       };
 
       avatarUpdated = await modelCondition[context].findByPk(target.id, {
+        attributes: { exclude: ['password_hash'] },
         include: [
           {
             model: File,
@@ -87,13 +89,9 @@ class AvatarController {
           },
         ],
       });
-
-      if (avatarUpdated.password_hash) {
-        avatarUpdated.password_hash = undefined;
-      }
     } catch (error) {
       await clearJunk(newAvatar.filename, avatarUpdated && avatarUpdated.id);
-      return response.status(500).json({ error: 'Internal error.' });
+      return response.status(500).json({ error: error.message });
     }
 
     return response.json(avatarUpdated);

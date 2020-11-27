@@ -43,7 +43,11 @@ routes.use(auth);
 
 routes.get('/customer/me', CustomerController.show);
 routes.put('/customer', CustomerController.update);
-routes.patch('/avatar', upload.single('avatar'), AvatarController.update);
+routes.patch(
+  '/avatar/:target_id',
+  upload.single('avatar'),
+  AvatarController.update
+);
 
 routes.post('/customer/pet', upload.single('avatar'), PetController.create);
 routes.get('/customer/pet', PetController.index);
@@ -72,7 +76,11 @@ routes.get('/employee/me', EmployeeController.show);
 
 routes.get('/company/customer', CompanyCustomerController.index);
 routes.get('/company/customer/:id', CompanyCustomerController.show);
-routes.put('/company/customer', CompanyCustomerController.update);
+routes.put('/company/customer/:customer_id', CompanyCustomerController.update);
+routes.delete(
+  '/company/customer/:customer_id',
+  CompanyCustomerController.delete
+);
 
 routes.post(
   '/company/pet',

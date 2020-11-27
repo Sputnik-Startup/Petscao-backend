@@ -72,13 +72,44 @@ class AppointmentController {
         .json({ error: 'Appointment date is not available.' });
     }
 
-    const appointments = await Appointment.create({
+    const createdAppointment = await Appointment.create({
       user_id: request.userId,
       pet_id,
       date: hourStart,
     });
 
-    return response.json(appointments);
+    const appointment = await Appointment.findByPk(createdAppointment.id, {
+      include: [
+        {
+          model: Customer,
+          as: 'customer',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['id', 'path', 'url'],
+            },
+          ],
+        },
+        {
+          model: Pet,
+          as: 'pet',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['id', 'path', 'url'],
+            },
+          ],
+        },
+      ],
+    });
+
+    request.io.to('employees').emit('new-appointment', { appointment });
+
+    return response.json(createdAppointment);
   }
 
   async index(request, response) {
