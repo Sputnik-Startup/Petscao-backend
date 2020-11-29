@@ -1,5 +1,8 @@
 import Sequelize, { Model } from 'sequelize';
 import Comment from './Comment';
+import Customer from './Customer';
+import Employee from './Employee';
+import File from './File';
 import Like from './Like';
 
 class Post extends Model {
@@ -33,10 +36,26 @@ class Post extends Model {
 
   async getCommentsAndLikes(post_id) {
     const likes = await Like.findAll({ where: { post_id } });
-    const comments = await Comment.findAll({ where: { post_id } });
+    const comments = await Comment.findAll({
+      where: { post_id },
+      include: [
+        {
+          model: Employee,
+          as: 'employee',
+          attributes: ['id', 'name'],
+          include: [{ model: File, as: 'avatar' }],
+        },
+        {
+          model: Customer,
+          as: 'customer',
+          attributes: ['id', 'name'],
+          include: [{ model: File, as: 'avatar' }],
+        },
+      ],
+    });
 
-    this.likes = likes.length;
-    this.comments = comments.length;
+    this.likes = likes;
+    this.comments = comments;
   }
 }
 

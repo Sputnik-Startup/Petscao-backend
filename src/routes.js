@@ -70,6 +70,7 @@ routes.put('/posts/comment/:comment_id', CommentController.update);
 routes.delete('/posts/comment/:comment_id', CommentController.delete);
 
 routes.get('/notifications', NotificationController.index);
+routes.get('/company/post', PostController.index);
 
 routes.use(employee);
 
@@ -104,7 +105,6 @@ routes.put('/company/purchase/:purchase_id', PurchaseController.update);
 routes.delete('/company/purchase/:purchase_id', PurchaseController.delete);
 
 routes.post('/company/post', upload.single('midia'), PostController.create);
-routes.get('/company/post', PostController.index);
 routes.delete('/company/post/:post_id', PostController.delete);
 routes.put(
   '/company/post/:post_id',
