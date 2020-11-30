@@ -3,6 +3,7 @@ import Comment from '../models/Comment';
 import Customer from '../models/Customer';
 import Employee from '../models/Employee';
 import File from '../models/File';
+import Notification from '../schemas/Notification';
 
 class CommentController {
   async create(request, response) {
@@ -13,11 +14,11 @@ class CommentController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     const { content } = request.body;
-    const { p: post_id, context } = request.query;
+    const { p: post_id, context, notifyTo } = request.query;
 
     if (!['employee', 'customer'].includes(context)) {
       return response.status(400).json({
@@ -28,9 +29,9 @@ class CommentController {
     if (!post_id) {
       return response.status(400).json({ error: 'Post id not provided' });
     }
-
-    let comment;
+    let commentResponse;
     try {
+      let comment;
       if (context === 'employee') {
         comment = await Comment.create({
           content,
@@ -46,11 +47,52 @@ class CommentController {
           post_id,
         });
       }
+
+      commentResponse = await Comment.findByPk(comment.id, {
+        include: [
+          {
+            model: Employee,
+            as: 'employee',
+            attributes: ['id', 'name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+              },
+            ],
+          },
+          {
+            model: Customer,
+            as: 'customer',
+            attributes: ['id', 'name'],
+            include: [
+              {
+                model: File,
+                as: 'avatar',
+                attributes: ['id', 'path', 'url'],
+              },
+            ],
+          },
+        ],
+      });
+      const notification = await Notification.create({
+        to: notifyTo,
+        type: 'ALERT',
+        content: 'Equipe Petscão te mencionou em um comentário.',
+        title: 'Menção',
+        midia: 'https://i.ibb.co/Yjn68nd/64-email-128.png',
+      });
+
+      const socket = request.redis.get(notifyTo);
+      if (socket) {
+        request.io.to(socket).emit('notification', { notification });
+      }
     } catch (error) {
-      return response.status(500).json({ error: 'Internal error.' });
+      return response.status(500).json({ error: error.message });
     }
 
-    return response.status(201).json(comment);
+    return response.status(201).json(commentResponse);
   }
 
   async index(request, response) {

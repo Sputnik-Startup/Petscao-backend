@@ -15,6 +15,7 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
+        allowNull: true,
       },
       employee_id: {
         type: Sequelize.UUID,
@@ -24,6 +25,7 @@ module.exports = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
+        allowNull: true,
       },
       post_id: {
         type: Sequelize.UUID,

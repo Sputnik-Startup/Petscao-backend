@@ -113,10 +113,16 @@ class NotificationController {
 
   async index(request, response) {
     let notifications;
+    const { qt } = request.query;
     try {
-      notifications = await Notification.find({ to: request.userId })
-        .limit(5)
-        .sort({ createdAt: -1 });
+      notifications =
+        qt === 'all'
+          ? await Notification.find({ to: request.userId }).sort({
+              createdAt: -1,
+            })
+          : await Notification.find({ to: request.userId })
+              .limit(5)
+              .sort({ createdAt: -1 });
 
       await Notification.updateMany(
         { to: request.userId, read: false },
