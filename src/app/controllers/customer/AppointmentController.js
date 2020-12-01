@@ -15,6 +15,8 @@ import Pet from '../../models/Pet';
 import Customer from '../../models/Customer';
 import Appointment from '../../models/Appointment';
 import File from '../../models/File';
+import Queue from '../../../lib/Queue';
+import CancellationMail from '../../jobs/CancellationMail';
 
 class AppointmentController {
   async create(request, response) {
@@ -222,6 +224,8 @@ class AppointmentController {
 
     appointment.canceled_at = new Date();
     await appointment.save();
+
+    await Queue.add(CancellationMail.key, { appointment });
 
     return response.json(appointment);
   }

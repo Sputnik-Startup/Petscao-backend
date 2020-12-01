@@ -76,17 +76,18 @@ class CommentController {
           },
         ],
       });
-      const notification = await Notification.create({
-        to: notifyTo,
-        type: 'ALERT',
-        content: 'Equipe Petscão te mencionou em um comentário.',
-        title: 'Menção',
-        midia: 'https://i.ibb.co/Yjn68nd/64-email-128.png',
-      });
+      if (notifyTo) {
+        const notification = await Notification.create({
+          to: notifyTo,
+          content: 'Equipe Petscão te mencionou em um comentário.',
+          title: 'Menção',
+          midia: 'https://i.ibb.co/Yjn68nd/64-email-128.png',
+        });
 
-      const socket = request.redis.get(notifyTo);
-      if (socket) {
-        request.io.to(socket).emit('notification', { notification });
+        const socket = request.redis.get(notifyTo);
+        if (socket) {
+          request.io.to(socket).emit('notification', { notification });
+        }
       }
     } catch (error) {
       return response.status(500).json({ error: error.message });

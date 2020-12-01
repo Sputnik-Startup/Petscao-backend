@@ -66,10 +66,10 @@ routes.get('/descount', DescountController.show);
 
 routes.post('/posts/comment', CommentController.create);
 routes.get('/posts/comment', CommentController.index);
-routes.put('/posts/comment/:comment_id', CommentController.update);
 routes.delete('/posts/comment/:comment_id', CommentController.delete);
 
 routes.get('/notifications', NotificationController.index);
+routes.put('/notifications', NotificationController.updateMany);
 routes.get('/company/post', PostController.index);
 
 routes.use(employee);

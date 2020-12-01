@@ -20,7 +20,7 @@ class AvailableController {
       return response.status(400).json({ error: 'Invalid date' });
     }
 
-    const dayStart = startOfDay(parseISO(date));
+    const dayStart = endOfDay(parseISO(date));
 
     if (isBefore(dayStart, startOfDay(new Date()))) {
       return response

@@ -11,12 +11,9 @@ NOTIFY
 
 const NotificationSchema = new Schema(
   {
-    type: {
-      type: String,
-      required: true,
-    },
     midia: {
       type: String,
+      default: 'https://i.ibb.co/wC9146G/image.png',
     },
     title: {
       type: String,
