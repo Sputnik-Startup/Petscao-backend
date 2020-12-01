@@ -1,4 +1,5 @@
-import sequelize from 'sequelize';
+import { getYear } from 'date-fns';
+import sequelize, { Op } from 'sequelize';
 import Appointment from '../../models/Appointment';
 
 class AppointmentByMonth {
@@ -33,14 +34,22 @@ class AppointmentByMonth {
       'dec',
     ];
 
+    const currentYear = getYear(new Date());
+
     const appointments = await Promise.all(
       months.map(async (month) =>
         Appointment.findAll({
           where: {
-            $and: sequelize.where(
-              sequelize.fn('month', sequelize.col('date')),
-              month
-            ),
+            [Op.and]: [
+              sequelize.where(
+                sequelize.fn('month', sequelize.col('date')),
+                month
+              ),
+              sequelize.where(
+                sequelize.fn('YEAR', sequelize.col('date')),
+                currentYear
+              ),
+            ],
           },
         })
       )

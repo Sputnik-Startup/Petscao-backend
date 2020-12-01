@@ -18,7 +18,7 @@ class PostController {
       await schema.validate(request.body);
     } catch (error) {
       clearJunk(midia.filename);
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     if (

@@ -118,6 +118,7 @@ routes.post('/company/notifications', NotificationController.create);
 
 routes.put('/employee/:id', EmployeeController.update);
 routes.get('/employee', EmployeeController.index);
+routes.delete('/employee/:employee_id', EmployeeController.delete);
 routes.post('/employee', upload.single('avatar'), EmployeeController.create);
 
 export default routes;

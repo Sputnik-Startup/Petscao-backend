@@ -24,7 +24,7 @@ class PetController {
     if (
       request.headers['content-type'].split(';')[0] !== 'multipart/form-data'
     ) {
-      clearJunk(petAvatar.filename);
+      if (petAvatar) clearJunk(petAvatar.filename);
       return response
         .status(400)
         .json({ error: 'Content type must be multipart/form-data' });
@@ -34,13 +34,12 @@ class PetController {
       await schema.validate(request.body);
     } catch (error) {
       clearJunk(petAvatar.filename);
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
-    let avatar;
+    let avatarData;
     let pet;
     try {
-      let avatarData;
       if (petAvatar) {
         avatarData = await File.create({
           name: petAvatar.originalname,
@@ -56,7 +55,7 @@ class PetController {
         sex,
         breed,
         owner_id,
-        avatar_id: avatarData.id || null,
+        avatar_id: avatarData ? avatarData.id : null,
       });
 
       pet = await Pet.findByPk(createdPet.id, {
@@ -66,11 +65,16 @@ class PetController {
             as: 'avatar',
             attributes: ['id', 'path', 'url'],
           },
+          {
+            model: Customer,
+            as: 'owner',
+            attributes: ['id', 'name'],
+          },
         ],
       });
     } catch (error) {
-      if (petAvatar) clearJunk(petAvatar.filename, avatar && avatar.id);
-      return response.status(500).json({ error: 'Internal error.' });
+      if (petAvatar) clearJunk(petAvatar.filename, avatarData && avatarData.id);
+      return response.status(500).json({ error: error.message });
     }
 
     return response.json(pet);

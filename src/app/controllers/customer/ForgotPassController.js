@@ -46,7 +46,7 @@ class ForgotPassController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     const { c: id } = request.query;

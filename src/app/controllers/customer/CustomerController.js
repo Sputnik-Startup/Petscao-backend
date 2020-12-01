@@ -38,7 +38,7 @@ class CustomerController {
       await schema.validate(request.body);
     } catch (error) {
       if (avatar) clearJunk(avatar.filename);
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     if (!validateCpf(request.body.cpf)) {
@@ -113,9 +113,6 @@ class CustomerController {
 
     return response.json(loggedUser);
   }
-  // where: {
-  //   sequelize.where(sequelize.fn("month", sequelize.col("fromDate")), fromMonth)
-  // }
 
   async update(request, response) {
     const schema = Yup.object().shape({
@@ -145,7 +142,7 @@ class CustomerController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     const { email, oldPassword } = request.body;

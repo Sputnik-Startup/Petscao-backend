@@ -25,15 +25,13 @@ class PetController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      clearJunk(petAvatar.filename);
-      return response.json({ error: error.errors.join('. ') });
+      if (petAvatar) clearJunk(petAvatar.filename);
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
-    let avatar;
     let pet;
+    let avatarData;
     try {
-      let avatarData;
-
       if (petAvatar) {
         avatarData = await File.create({
           name: petAvatar.originalname,
@@ -62,9 +60,9 @@ class PetController {
         ],
       });
     } catch (error) {
-      if (petAvatar) clearJunk(petAvatar.filename, avatar && avatar.id);
+      if (petAvatar) clearJunk(petAvatar.filename, avatarData && avatarData.id);
 
-      return response.status(500).json({ error: 'Internal error.' });
+      return response.status(500).json({ error: error.message });
     }
 
     return response.json(pet);
@@ -114,7 +112,7 @@ class PetController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     const { id } = request.params;

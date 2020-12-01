@@ -260,6 +260,20 @@ class EmployeeController {
 
     return response.json(employees);
   }
+
+  async delete(request, response) {
+    const { employee_id } = request.params;
+
+    const emplExists = await Employee.findByPk(employee_id);
+
+    if (!emplExists) {
+      return response.status(404).json({ error: `Funcionário não existente` });
+    }
+
+    await emplExists.destroy();
+
+    return response.status(204).send();
+  }
 }
 
 export default new EmployeeController();

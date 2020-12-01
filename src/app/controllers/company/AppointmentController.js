@@ -7,6 +7,7 @@ import {
   addDays,
   startOfDay,
   endOfDay,
+  format,
 } from 'date-fns';
 import { Op } from 'sequelize';
 
@@ -16,6 +17,7 @@ import Appointment from '../../models/Appointment';
 import File from '../../models/File';
 import Queue from '../../../lib/Queue';
 import CancellationMail from '../../jobs/CancellationMail';
+import Notification from '../../schemas/Notification';
 
 class AppointmentController {
   async create(request, response) {
@@ -233,6 +235,19 @@ class AppointmentController {
     await appointment.save();
 
     await Queue.add(CancellationMail.key, { appointment });
+    const notification = await Notification.create({
+      title: 'Agendamento cancelado',
+      content: `O agendamento para o dia ${format(
+        parseISO(appointment.date),
+        "dd/MM/yyyy à's' hh:mm'h'"
+      )} foi cancelado`,
+      to: appointment.customer_id,
+    });
+
+    const socket = request.redis.get(appointment.customer_id);
+    if (socket) {
+      request.io.to(socket).emit('notification', { notification });
+    }
 
     return response.json(appointment);
   }
@@ -253,7 +268,7 @@ class AppointmentController {
     try {
       await schema.validate(request.body);
     } catch (error) {
-      return response.json({ error: error.errors.join('. ') });
+      return response.status(400).json({ error: error.errors.join('. ') });
     }
 
     const { date } = request.body;
