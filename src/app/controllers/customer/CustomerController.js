@@ -103,7 +103,7 @@ class CustomerController {
           {
             model: File,
             as: 'avatar',
-            attributes: ['id', 'path', 'url'],
+            attributes: ['id', 'path', 'url', 'devMobileUrl'],
           },
         ],
       });

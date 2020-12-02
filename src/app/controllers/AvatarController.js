@@ -18,7 +18,6 @@ class AvatarController {
     const newAvatar = request.file;
     try {
       if (!newAvatar) {
-        clearJunk(newAvatar.filename);
         return response.status(400).json({ error: 'New Avatar not provided.' });
       }
       let target;
@@ -37,7 +36,7 @@ class AvatarController {
         const { target_id: petId = null } = request.params;
 
         if (!petId) {
-          clearJunk(newAvatar.filename);
+          if (newAvatar) clearJunk(newAvatar.filename);
           return response.status(400).json({
             error: "Context is PET but petId wasn't provided in PARAMS.",
           });

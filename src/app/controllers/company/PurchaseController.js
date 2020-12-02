@@ -97,18 +97,6 @@ class PurchaseController {
               },
             ],
           },
-          {
-            model: Pet,
-            as: 'pet',
-            attributes: ['id', 'name'],
-            include: [
-              {
-                model: File,
-                as: 'avatar',
-                attributes: ['id', 'path', 'url'],
-              },
-            ],
-          },
         ],
       });
     } catch (error) {
@@ -140,18 +128,6 @@ class PurchaseController {
           {
             model: Customer,
             as: 'customer',
-            attributes: ['id', 'name'],
-            include: [
-              {
-                model: File,
-                as: 'avatar',
-                attributes: ['id', 'path', 'url'],
-              },
-            ],
-          },
-          {
-            model: Pet,
-            as: 'pet',
             attributes: ['id', 'name'],
             include: [
               {

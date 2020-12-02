@@ -55,7 +55,7 @@ class PetController {
           {
             model: File,
             as: 'avatar',
-            attributes: ['id', 'path', 'url'],
+            attributes: ['id', 'path', 'url', 'devMobileUrl'],
           },
         ],
       });
@@ -136,7 +136,17 @@ class PetController {
       return response.status(500).json({ error: 'Internal error' });
     }
 
-    return response.json(petUpdated);
+    const petPopulated = await Pet.findByPk(petUpdated.id, {
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'path', 'url', 'devMobileUrl'],
+        },
+      ],
+    });
+
+    return response.json(petPopulated);
   }
 
   async delete(request, response) {
@@ -162,7 +172,7 @@ class PetController {
         return response.status(404).json({ error: 'Pet not found.' });
       }
 
-      await clearJunk(pet.avatar.path, pet.avatar.id);
+      if (pet.avatar) await clearJunk(pet.avatar.path, pet.avatar.id);
 
       await pet.destroy();
     } catch (error) {

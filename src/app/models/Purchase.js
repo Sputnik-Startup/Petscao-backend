@@ -23,7 +23,6 @@ class Purchase extends Model {
 
   static associate(models) {
     this.belongsTo(models.Customer, { foreignKey: 'user_id', as: 'customer' });
-    this.belongsTo(models.Pet, { foreignKey: 'pet_id', as: 'pet' });
   }
 }
 

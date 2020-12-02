@@ -42,14 +42,6 @@ class CustomerController {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       cpf: Yup.string().required(),
-      password: Yup.string().test(
-        'empty-check',
-        'Password must be at least 8 characters',
-        (password) => password.length >= 8 || password.length === 0
-      ),
-      confirmPassword: Yup.string().when('password', (password, field) =>
-        password ? field.required().oneOf([Yup.ref('password')]) : field
-      ),
       age: Yup.number().required(),
       phone: Yup.string().required(),
       address: Yup.string().required(),

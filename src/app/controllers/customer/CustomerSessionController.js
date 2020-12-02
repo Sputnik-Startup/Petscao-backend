@@ -1,6 +1,7 @@
 import * as Yup from 'yup';
 import jwt from 'jsonwebtoken';
 import Customer from '../../models/Customer';
+import File from '../../models/File';
 import authConfig from '../../../config/auth';
 
 class SessionController {
@@ -20,6 +21,12 @@ class SessionController {
 
     const customer = await Customer.findOne({
       where: { email },
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+        },
+      ],
     });
 
     if (!(await customer.checkPassword(password))) {
