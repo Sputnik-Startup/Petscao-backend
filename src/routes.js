@@ -12,6 +12,7 @@ import AvailableController from './app/controllers/customer/AvailableController'
 import DescountController from './app/controllers/customer/DescountController';
 import LikeController from './app/controllers/customer/LikeController';
 import ForgotPassController from './app/controllers/customer/ForgotPassController';
+import CustomerPostController from './app/controllers/customer/PostController';
 
 import PurchaseController from './app/controllers/company/PurchaseController';
 import CompanyCustomerController from './app/controllers/company/CustomerController';
@@ -57,13 +58,14 @@ routes.delete('/customer/pet/:id', PetController.delete);
 
 routes.post('/customer/appointment', AppointmentController.create);
 routes.get('/customer/appointment', AppointmentController.index);
-routes.delete('/customer/appointment', AppointmentController.delete);
+routes.delete('/customer/appointment/:id', AppointmentController.delete);
 
 routes.post('/customer/post/like', LikeController.create);
 routes.delete('/customer/post/like', LikeController.delete);
 
 routes.get('/descount', DescountController.show);
 
+routes.get('/posts', CustomerPostController.index);
 routes.post('/posts/comment', CommentController.create);
 routes.get('/posts/comment', CommentController.index);
 routes.delete('/posts/comment/:comment_id', CommentController.delete);

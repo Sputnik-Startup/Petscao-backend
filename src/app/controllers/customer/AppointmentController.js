@@ -126,7 +126,7 @@ class AppointmentController {
       fri: 5,
       sat: 6,
     };
-    const { page = 1, day, order = 'newest' } = request.query;
+    const { page = 1, day, order = 'oldest' } = request.query;
     const orderBy = {
       newest: 'DESC',
       oldest: 'ASC',
@@ -153,7 +153,7 @@ class AppointmentController {
             {
               model: File,
               as: 'avatar',
-              attributes: ['id', 'path', 'url'],
+              attributes: ['id', 'path', 'url', 'devMobileUrl'],
             },
           ],
         },
@@ -165,7 +165,19 @@ class AppointmentController {
             {
               model: File,
               as: 'avatar',
-              attributes: ['id', 'path', 'url'],
+              attributes: ['id', 'path', 'url', 'devMobileUrl'],
+            },
+          ],
+        },
+        {
+          model: Pet,
+          as: 'pet',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['id', 'path', 'url', 'devMobileUrl'],
             },
           ],
         },
@@ -184,6 +196,7 @@ class AppointmentController {
           date: {
             [Op.between]: betweenDate,
           },
+          user_id: request.userId,
         },
         ...options,
       });
@@ -191,6 +204,7 @@ class AppointmentController {
       appointments = await Appointment.findAll({
         where: {
           canceled_at: null,
+          user_id: request.userId,
         },
         ...options,
       });
@@ -216,7 +230,7 @@ class AppointmentController {
       });
     }
 
-    const dateWithSub = subHours(appointment.date, 2);
+    const dateWithSub = subHours(parseISO(appointment.date), 2);
 
     if (isBefore(dateWithSub, new Date())) {
       return response.status(401).json({
@@ -228,21 +242,21 @@ class AppointmentController {
     await appointment.save();
 
     await Queue.add(CancellationMail.key, { appointment });
-
-    await Queue.add(CancellationMail.key, { appointment });
     const notification = await Notification.create({
       title: 'Agendamento cancelado',
       content: `O agendamento para o dia ${format(
-        parseISO(appointment.date),
+        appointment.date,
         "dd/MM/yyyy à's' hh:mm'h'"
       )} foi cancelado`,
-      to: appointment.customer_id,
+      to: appointment.user_id,
+      midia: 'https://i.ibb.co/C0f4ZvJ/image.png',
     });
 
-    const socket = request.redis.get(appointment.customer_id);
-    if (socket) {
-      request.io.to(socket).emit('notification', { notification });
-    }
+    request.redis.get(appointment.user_id, (err, value) => {
+      if (!err && value) {
+        request.io.to(value).emit('notification', { notification });
+      }
+    });
 
     return response.json(appointment);
   }

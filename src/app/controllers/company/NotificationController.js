@@ -97,7 +97,10 @@ class NotificationController {
 
   async updateMany(request, response) {
     try {
-      await Notification.updateMany({ read: false }, { read: true });
+      await Notification.updateMany(
+        { to: request.userId, read: false },
+        { read: true }
+      );
     } catch (error) {
       return response.status(500).json({ error: error.message });
     }

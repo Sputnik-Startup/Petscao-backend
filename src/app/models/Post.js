@@ -17,6 +17,7 @@ class Post extends Model {
         title: Sequelize.STRING,
         likes: Sequelize.VIRTUAL,
         comments: Sequelize.VIRTUAL,
+        isLiked: Sequelize.VIRTUAL,
       },
       {
         sequelize,
@@ -56,6 +57,12 @@ class Post extends Model {
 
     this.likes = likes;
     this.comments = comments;
+  }
+
+  async verifyIfIsLiked(post_id, customer_id) {
+    const isLikes = await Like.findOne({ where: { post_id, customer_id } });
+
+    this.isLiked = isLikes ? !!isLikes.id : !!isLikes;
   }
 }
 

@@ -17,6 +17,12 @@ class File extends Sequelize.Model {
             return `${process.env.API_URL}/files/${this.path}`;
           },
         },
+        devMobileUrl: {
+          type: Sequelize.VIRTUAL,
+          get() {
+            return `${process.env.MOBILE_API_URL}/files/${this.path}`;
+          },
+        },
       },
       {
         sequelize,

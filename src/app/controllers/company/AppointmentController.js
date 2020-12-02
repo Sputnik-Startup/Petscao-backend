@@ -244,10 +244,11 @@ class AppointmentController {
       to: appointment.customer_id,
     });
 
-    const socket = request.redis.get(appointment.customer_id);
-    if (socket) {
-      request.io.to(socket).emit('notification', { notification });
-    }
+    request.redis.get(appointment.user_id, (err, value) => {
+      if (!err && value) {
+        request.io.to(value).emit('notification', { notification });
+      }
+    });
 
     return response.json(appointment);
   }
