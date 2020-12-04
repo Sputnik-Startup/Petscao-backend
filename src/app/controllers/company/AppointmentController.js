@@ -60,7 +60,7 @@ class AppointmentController {
     if (isBefore(hourStart, new Date())) {
       return response
         .status(400)
-        .json({ error: 'Past dates are not permitted' });
+        .json({ error: 'Datas passadas não são permitidas' });
     }
 
     const available = await Appointment.findOne({

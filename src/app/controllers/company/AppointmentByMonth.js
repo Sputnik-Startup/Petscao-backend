@@ -49,6 +49,7 @@ class AppointmentByMonth {
                 sequelize.fn('YEAR', sequelize.col('date')),
                 currentYear
               ),
+              { canceled_at: null },
             ],
           },
         })

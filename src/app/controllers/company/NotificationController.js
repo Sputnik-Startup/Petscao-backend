@@ -65,9 +65,7 @@ class NotificationController {
           )
         );
 
-        request.io
-          .to('employees')
-          .emit('notification', { notification: notification[0] });
+        request.io.to('employees').emit('notification', { notification });
       }
     } catch (error) {
       return response.status(500).json({ error: 'Internal error.' });

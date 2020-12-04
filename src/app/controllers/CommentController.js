@@ -81,7 +81,7 @@ class CommentController {
           to: notifyTo,
           content: 'Equipe Petscão te mencionou em um comentário.',
           title: 'Menção',
-          midia: 'https://i.ibb.co/Yjn68nd/64-email-128.png',
+          midia: 'https://i.ibb.co/wd0rrJV/at-symbol-512.png',
         });
 
         const socket = request.redis.get(notifyTo);

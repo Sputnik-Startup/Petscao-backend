@@ -12,6 +12,7 @@ import {
 } from 'date-fns';
 import { Op } from 'sequelize';
 
+import { ptBR } from 'date-fns/locale';
 import Pet from '../../models/Pet';
 import Customer from '../../models/Customer';
 import Appointment from '../../models/Appointment';
@@ -92,7 +93,7 @@ class AppointmentController {
             {
               model: File,
               as: 'avatar',
-              attributes: ['id', 'path', 'url'],
+              attributes: ['id', 'path', 'url', 'devMobileUrl'],
             },
           ],
         },
@@ -104,7 +105,7 @@ class AppointmentController {
             {
               model: File,
               as: 'avatar',
-              attributes: ['id', 'path', 'url'],
+              attributes: ['id', 'path', 'url', 'devMobileUrl'],
             },
           ],
         },
@@ -113,7 +114,7 @@ class AppointmentController {
 
     request.io.to('employees').emit('new-appointment', { appointment });
 
-    return response.json(createdAppointment);
+    return response.json(appointment);
   }
 
   async index(request, response) {
@@ -230,11 +231,30 @@ class AppointmentController {
       });
     }
 
-    const dateWithSub = subHours(parseISO(appointment.date), 2);
-
+    const dateWithSub = subHours(appointment.date, 2);
+    console.log(dateWithSub);
     if (isBefore(dateWithSub, new Date())) {
+      const notification = await Notification.create({
+        title: 'Agendamento não cancelado',
+        content: `O agendamento de hoje ${format(
+          appointment.date,
+          "à's' HH:mm'h'",
+          {
+            locale: ptBR,
+          }
+        )} não pôde ser cancelado pois falta menos de 2 horas.`,
+        to: appointment.user_id,
+        midia: 'https://i.ibb.co/7Nt7gCm/image.png',
+      });
+
+      request.redis.get(request.userId, (err, value) => {
+        if (!err) {
+          request.io.to(value).emit('notification', { notification });
+        }
+      });
       return response.status(401).json({
-        error: 'You can only cancel appointments 2 hours advance.',
+        error:
+          'Agendamentos só podem ser cancelados 2 horas antes da hora registrada',
       });
     }
 
@@ -246,7 +266,10 @@ class AppointmentController {
       title: 'Agendamento cancelado',
       content: `O agendamento para o dia ${format(
         appointment.date,
-        "dd/MM/yyyy à's' hh:mm'h'"
+        "dd/MM/yyyy à's' HH:mm'h'",
+        {
+          locale: ptBR,
+        }
       )} foi cancelado`,
       to: appointment.user_id,
       midia: 'https://i.ibb.co/C0f4ZvJ/image.png',
