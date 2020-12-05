@@ -117,13 +117,18 @@ class CustomerController {
   async update(request, response) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
-      email: Yup.string().email().required(),
       cpf: Yup.string().required(),
-      oldPassword: Yup.string().min(6),
-      password: Yup.string().test(
-        'empty-check',
-        'Password must be at least 8 characters',
-        (password) => password.length >= 8 || password.length === 0
+      oldPassword: Yup.string(),
+      password: Yup.string().when('oldPassword', (oldPass, field) =>
+        oldPass
+          ? field
+              .test(
+                'empty-check',
+                'Password must be at least 8 characters',
+                (password) => password.length >= 8 || password.length === 0
+              )
+              .required()
+          : field
       ),
       confirmPassword: Yup.string().when('password', (password, field) =>
         password ? field.required().oneOf([Yup.ref('password')]) : field
@@ -145,9 +150,9 @@ class CustomerController {
       return response.status(400).json({ error: error.errors.join('. ') });
     }
 
-    const { email, oldPassword } = request.body;
+    const { oldPassword } = request.body;
     const user = await Customer.findByPk(request.userId);
-    if (user.email !== email) {
+    if (user.id !== request.userId) {
       return response
         .status(400)
         .json({ error: 'You can only update your own profile.' });
