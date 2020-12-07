@@ -29,8 +29,12 @@ class SessionController {
       ],
     });
 
+    if (!employee) {
+      return response.status(404).json({ error: 'Nome de usuário incorreto' });
+    }
+
     if (!(await employee.checkPassword(password))) {
-      return response.status(400).json({ error: 'Password does not match' });
+      return response.status(400).json({ error: 'Senha incorreta' });
     }
 
     employee.password_hash = undefined;
