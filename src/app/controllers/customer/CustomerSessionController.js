@@ -29,8 +29,12 @@ class SessionController {
       ],
     });
 
+    if (!customer) {
+      return response.status(404).json({ error: "Nenhum usuário com este email" })
+    }
+
     if (!(await customer.checkPassword(password))) {
-      return response.status(400).json({ error: 'Password does not match' });
+      return response.status(400).json({ error: 'Senha errada' });
     }
 
     customer.password_hash = undefined;
