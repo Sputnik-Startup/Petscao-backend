@@ -32,6 +32,10 @@ import AppointmentByMonth from './app/controllers/company/AppointmentByMonth';
 const routes = express.Router();
 const upload = multer(multerConfig);
 
+routes.get('/connection/verify', (request, response) =>
+  response.json({ connection: true })
+);
+
 routes.post('/customer/session', CustomerSessionController.create);
 routes.post('/company/session', CompanySessionController.create);
 routes.get('/appointment/available', AvailableController.show);
